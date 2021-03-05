@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dadsunion.mapper.TronCoinTypeMapper">
+    
+    <resultMap type="TronCoinType" id="TronCoinTypeResult">
+        <result property="id"    column="id"    />
+        <result property="symbol"    column="symbol"    />
+        <result property="type"    column="type"    />
+        <result property="isMaster"    column="is_master"    />
+        <result property="name"    column="name"    />
+        <result property="contractAddr"    column="contract_addr"    />
+        <result property="scale"    column="scale"    />
+    </resultMap>
+
+
+</mapper>
