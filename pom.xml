@@ -35,6 +35,7 @@
         <hutool.version>5.4.0</hutool.version>
         <feign.version>2.2.6.RELEASE</feign.version>
         <feign-okhttp.version>11.0</feign-okhttp.version>
+        <lombok.version>1.18.10</lombok.version>
     </properties>
 	
     <!-- 依赖声明 -->
@@ -239,6 +240,12 @@
                 <version>${ruoyi.version}</version>
             </dependency>
 
+            <!-- tron模块 -->
+            <dependency>
+                <groupId>com.dadsunion</groupId>
+                <artifactId>tron</artifactId>
+                <version>${ruoyi.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

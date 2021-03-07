@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.dadsunion.mapper.TronSystemAddressMapper">
+<mapper namespace="com.dadsunion.tron.mapper.TronSystemAddressMapper">
     
     <resultMap type="TronSystemAddress" id="TronSystemAddressResult">
         <result property="id"    column="id"    />
