@@ -16,24 +16,25 @@
             <groupId>com.dadsunion</groupId>
             <artifactId>tron-common</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>wallet</groupId>
-            <artifactId>wallet</artifactId>
-            <version>4.0</version>
+            <groupId>tron-sdk</groupId>
+            <artifactId>tron-sdk</artifactId>
+            <version>1.0-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/wallet-4.0.jar</systemPath>
+            <systemPath>${basedir}/lib/tron-sdk-1.0-SNAPSHOT.jar</systemPath>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <executable>true</executable>
-                    <includeSystemScope>true</includeSystemScope>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.springframework.boot</groupId>-->
+<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <executable>true</executable>-->
+<!--                    <includeSystemScope>true</includeSystemScope>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
 </project>

@@ -18,84 +18,83 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Service
 public class TronDelegate {
+	@Autowired
+	private TronAddressMapper addressMapper;
+	@Autowired
+	private TronChainRecordMapper chainRecordMapper;
 
-    private TronAddressMapper addressMapper;
+	/**
+	 * 提现回调任务
+	 */
+	public void withdrawNotify() {
 
-    private TronChainRecordMapper chainRecordMapper;
+	}
 
-    /**
-     * 提现回调任务
-     */
-    public void withdrawNotify() {
+	/**
+	 * 充值回调任务
+	 */
+	public void rechargeNotify() {
 
-    }
+	}
 
-    /**
-     * 充值回调任务
-     */
-    public void rechargeNotify() {
+	public void withdraw() {
 
-    }
+	}
 
-    public void withdraw() {
+	/**
+	 * 链上处理
+	 *
+	 * @param chainId
+	 */
+	public void withdrawOnChain(Long chainId) {
 
-    }
+	}
 
-    /**
-     * 链上处理
-     * 
-     * @param chainId
-     */
-    public void withdrawOnChain(Long chainId) {
+	/**
+	 * 通过交易hash查询链上状态
+	 * 如果成功则修改状态并保存交易信息
+	 *
+	 * @param hash
+	 */
+	public void checkChainResultByHash(String hash) {
+		String data = null;
+		try {
+			data = TrxQuery.getTransactionById(hash);
+		} catch (Exception e) {
+			log.error("获取交易信息异常", e);
+		}
+		if (null != data) {
+			JSONObject js = JSON.parseObject(data);
+			String result = js.getJSONObject("ret").getString("contractRet");
+			QueryWrapper<TronChainRecord> query = new QueryWrapper<>();
+			query.eq("hash", hash);
+			TronChainRecord record = new TronChainRecord();
+			if ("SUCCESS".equals(result)) {
+				record.setState(2);
+				record.setBlockInfo(data);
+				chainRecordMapper.update(record, query);
+			} else if ("FAIL".equals(result)) {
+				record.setState(3);
+				record.setBlockInfo(data);
+				record.setErrMsg("");
+				chainRecordMapper.update(record, query);
+			}
+		}
 
-    }
+	}
 
-    /**
-     * 通过交易hash查询链上状态
-     * 如果成功则修改状态并保存交易信息
-     * 
-     * @param hash
-     */
-    public void checkChainResultByHash(String hash) {
-        String data = null;
-        try {
-            data = TrxQuery.getTransactionById(hash);
-        } catch (Exception e) {
-            log.error("获取交易信息异常", e);
-        }
-        if (null != data) {
-            JSONObject js = JSON.parseObject(data);
-            String result = js.getJSONObject("ret").getString("contractRet");
-            QueryWrapper<TronChainRecord> query = new QueryWrapper<>();
-            query.eq("hash", hash);
-            TronChainRecord record = new TronChainRecord();
-            if ("SUCCESS".equals(result)) {
-                record.setState(2);
-                record.setBlockInfo(data);
-                chainRecordMapper.update(record, query);
-            }else if("FAIL".equals(result)){
-                record.setState(3);
-                record.setBlockInfo(data);
-                record.setErrMsg("");
-                chainRecordMapper.update(record, query);
-            }
-        }
-
-    }
-
-    public String createAddress(String userId) {
-        Address address = AddressHelper.newAddress();
-        // 保存到本地数据库
-        TronAddress tronAddress = new TronAddress();
-        tronAddress.setUserId(userId);
-        tronAddress.setAddress(address.getAddress());
-        tronAddress.setSecretkey(address.getPrivateKey());
-        tronAddress.setActivated(0);// 默认没有激活
-        addressMapper.insert(tronAddress);
-        return address.getAddress();
-    }
+	public String createAddress(String userId) {
+		Address address = AddressHelper.newAddress();
+		// 保存到本地数据库
+		TronAddress tronAddress = new TronAddress();
+		tronAddress.setUserId(userId);
+		tronAddress.setAddress(address.getAddress());
+		tronAddress.setSecretkey(address.getPrivateKey());
+		tronAddress.setActivated(0);// 默认没有激活
+		addressMapper.insert(tronAddress);
+		return address.getAddress();
+	}
 
 }
