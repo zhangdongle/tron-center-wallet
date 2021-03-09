@@ -9,8 +9,7 @@
     <version>3.4.0</version>
 
     <name>ruoyi</name>
-    <url>http://www.ruoyi.vip</url>
-    <description>若依管理系统</description>
+    <description>波场充提币管理系统</description>
     
     <properties>
         <ruoyi.version>3.4.0</ruoyi.version>
@@ -47,6 +46,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>2.2.13.RELEASE</version>
+<!--                <version>Dalston.SR4</version>-->
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -246,6 +246,7 @@
                 <artifactId>tron</artifactId>
                 <version>${ruoyi.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -288,8 +289,15 @@
             </resource>
         </resources>
     </build>
-
     <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-ki5fpl-tronj</id>
+            <name>bintray</name>
+            <url>https://dl.bintray.com/ki5fpl/tronj</url>
+        </repository>
         <repository>
             <id>public</id>
             <name>aliyun nexus</name>
@@ -299,8 +307,15 @@
             </releases>
         </repository>
     </repositories>
-
     <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-ki5fpl-tronj</id>
+            <name>bintray-plugins</name>
+            <url>https://dl.bintray.com/ki5fpl/tronj</url>
+        </pluginRepository>
         <pluginRepository>
             <id>public</id>
             <name>aliyun nexus</name>

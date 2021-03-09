@@ -9,6 +9,7 @@ import com.dadsunion.tron.service.impl.TronAddressServiceImpl;
 import com.dadsunion.web.dto.CreateAddressDto;
 import com.dadsunion.web.vo.CreateAddressVo;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +22,10 @@ import io.swagger.annotations.Api;
 @RequestMapping("api/tron")
 public class TronController {
 
+	@Autowired
     private ITronAddressService addressService;
 
+	@Autowired
     private TronDelegate tronService;
 
     @PostMapping("address")
