@@ -70,7 +70,9 @@ spring:
     restart:
       # 热部署开关
       enabled: true
-
+  cloud:
+    consul:
+      enabled: false
 # token配置
 token:
     # 令牌自定义标识

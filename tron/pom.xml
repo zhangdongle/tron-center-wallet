@@ -21,9 +21,9 @@
         <dependency>
             <groupId>tron-sdk</groupId>
             <artifactId>tron-sdk</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/tron-sdk-1.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/lib/tron-sdk-1.0.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -36,7 +36,16 @@
             <artifactId>client</artifactId>
             <version>0.4.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.madgag.spongycastle</groupId>
+            <artifactId>core</artifactId>
+            <version>1.58.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.madgag.spongycastle</groupId>
+            <artifactId>prov</artifactId>
+            <version>1.58.0.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
