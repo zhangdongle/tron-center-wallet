@@ -75,6 +75,7 @@ public class TronDelegate {
 				record.setState(2);
 				record.setBlockInfo(data);
 				chainRecordMapper.update(record, query);
+				// 回调给服务器
 			} else if ("FAIL".equals(result)) {
 				record.setState(3);
 				record.setBlockInfo(data);
@@ -85,6 +86,11 @@ public class TronDelegate {
 
 	}
 
+	/**
+	 * 创建钱包地址
+	 * @param userId
+	 * @return
+	 */
 	public String createAddress(String userId) {
 		Address address = AddressHelper.newAddress();
 		// 保存到本地数据库
