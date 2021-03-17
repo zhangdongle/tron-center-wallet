@@ -50,6 +50,11 @@ private static final long serialVersionUID=1L;
     @Excel(name = "归集ID")
     private BigDecimal amount;
 
+	/**
+	 * 代币符号
+	 */
+	private String symbol;
+
     /** 来源地址，用户平台地址 */
     @Excel(name = "来源地址，用户平台地址")
     private String from;

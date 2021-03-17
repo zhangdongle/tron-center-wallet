@@ -50,6 +50,11 @@ private static final long serialVersionUID=1L;
     @Excel(name = "状态，0.待发起，1.处理中，2.成功，3.失败")
     private Integer state;
 
+	/**
+	 * 回调状态：0.待回调，1.已回调
+	 */
+	private Integer notifySt;
+
     /** 币种符号 */
     @Excel(name = "币种符号")
     private String symbol;
