@@ -19,7 +19,7 @@ public class TronNotifyVo {
 
 	private String to; // 目标地址
 
-	private BigDecimal bornTrx; // 消耗的trx
+	private BigDecimal trxFee; // 消耗的trx
 
 	private long sendTime; // 发起时间
 

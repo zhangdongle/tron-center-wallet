@@ -36,11 +36,11 @@ private static final long serialVersionUID=1L;
 
     /** 来源地址 */
     @Excel(name = "来源地址")
-    private String from;
+    private String fromAddr;
 
     /** 用户平台地址 */
     @Excel(name = "用户平台地址")
-    private String to;
+    private String toAddr;
 
     /** 金额 */
     @Excel(name = "金额")

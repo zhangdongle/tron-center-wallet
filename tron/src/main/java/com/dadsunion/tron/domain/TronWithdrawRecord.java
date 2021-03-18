@@ -34,13 +34,18 @@ private static final long serialVersionUID=1L;
     @TableId(value = "id")
     private Long id;
 
+	/**
+	 * 请求编号
+	 */
+	private String requestNo;
+
     /** 来源地址 */
     @Excel(name = "来源地址")
-    private String from;
+    private String fromAddr;
 
     /** 用户平台地址 */
     @Excel(name = "用户平台地址")
-    private String to;
+    private String toAddr;
 
     /** 金额 */
     @Excel(name = "金额")
@@ -49,6 +54,11 @@ private static final long serialVersionUID=1L;
     /** 状态，0.待发起，1.处理中，2.成功，3.失败 */
     @Excel(name = "状态，0.待发起，1.处理中，2.成功，3.失败")
     private Integer state;
+
+	/**
+	 * 错误信息
+	 */
+	private String errMsg;
 
 	/**
 	 * 回调状态：0.待回调，1.已回调

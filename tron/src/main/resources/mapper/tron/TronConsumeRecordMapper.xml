@@ -7,8 +7,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="TronConsumeRecord" id="TronConsumeRecordResult">
         <result property="id"    column="id"    />
         <result property="chainId"    column="chain_id"    />
-        <result property="from"    column="from"    />
-        <result property="to"    column="to"    />
+        <result property="fromAddr"    column="from_addr"    />
+        <result property="toAddr"    column="to_addr"    />
         <result property="type"    column="type"    />
         <result property="state"    column="state"    />
         <result property="count"    column="count"    />

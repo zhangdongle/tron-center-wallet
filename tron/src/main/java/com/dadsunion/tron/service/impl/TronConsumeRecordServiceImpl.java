@@ -27,11 +27,11 @@ public class TronConsumeRecordServiceImpl extends ServiceImpl<TronConsumeRecordM
         if (tronConsumeRecord.getChainId() != null){
             lqw.eq(TronConsumeRecord::getChainId ,tronConsumeRecord.getChainId());
         }
-        if (StringUtils.isNotBlank(tronConsumeRecord.getFrom())){
-            lqw.eq(TronConsumeRecord::getFrom ,tronConsumeRecord.getFrom());
+        if (StringUtils.isNotBlank(tronConsumeRecord.getFromAddr())){
+            lqw.eq(TronConsumeRecord::getFromAddr,tronConsumeRecord.getFromAddr());
         }
-        if (StringUtils.isNotBlank(tronConsumeRecord.getTo())){
-            lqw.eq(TronConsumeRecord::getTo ,tronConsumeRecord.getTo());
+        if (StringUtils.isNotBlank(tronConsumeRecord.getToAddr())){
+            lqw.eq(TronConsumeRecord::getToAddr,tronConsumeRecord.getToAddr());
         }
         if (tronConsumeRecord.getType() != null){
             lqw.eq(TronConsumeRecord::getType ,tronConsumeRecord.getType());

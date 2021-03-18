@@ -24,11 +24,11 @@ public class TronRechargeRecordServiceImpl extends ServiceImpl<TronRechargeRecor
     @Override
     public List<TronRechargeRecord> queryList(TronRechargeRecord tronRechargeRecord) {
         LambdaQueryWrapper<TronRechargeRecord> lqw = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(tronRechargeRecord.getFrom())){
-            lqw.eq(TronRechargeRecord::getFrom ,tronRechargeRecord.getFrom());
+        if (StringUtils.isNotBlank(tronRechargeRecord.getFromAddr())){
+            lqw.eq(TronRechargeRecord::getFromAddr,tronRechargeRecord.getFromAddr());
         }
-        if (StringUtils.isNotBlank(tronRechargeRecord.getTo())){
-            lqw.eq(TronRechargeRecord::getTo ,tronRechargeRecord.getTo());
+        if (StringUtils.isNotBlank(tronRechargeRecord.getToAddr())){
+            lqw.eq(TronRechargeRecord::getToAddr,tronRechargeRecord.getToAddr());
         }
         if (tronRechargeRecord.getAmount() != null){
             lqw.eq(TronRechargeRecord::getAmount ,tronRechargeRecord.getAmount());

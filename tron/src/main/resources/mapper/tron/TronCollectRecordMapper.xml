@@ -11,8 +11,8 @@
         <result property="collectChainId" column="collect_chain_id"/>
         <result property="symbol" column="symbol"/>
         <result property="amount" column="amount"/>
-        <result property="from" column="from"/>
-        <result property="to" column="to"/>
+        <result property="fromAddr" column="from_addr"/>
+        <result property="toAddr" column="to_addr"/>
         <result property="state" column="state"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>

@@ -7,14 +7,16 @@
     <resultMap type="TronChainRecord" id="TronChainRecordResult">
         <result property="id" column="id"/>
         <result property="type" column="type"/>
+        <result property="chainType" column="chain_type"/>
         <result property="height" column="height"/>
         <result property="contractAddr" column="contract_addr"/>
-        <result property="from" column="from"/>
-        <result property="to" column="to"/>
+        <result property="fromAddr" column="from_addr"/>
+        <result property="toAddr" column="to_addr"/>
         <result property="amount" column="amount"/>
         <result property="bandwidth" column="bandwidth"/>
         <result property="energy" column="energy"/>
-        <result property="bornTrx" column="born_trx"/>
+        <result property="trxFee" column="trx_fee"/>
+        <result property="lossSt" column="loss_st"/>
         <result property="blockInfo" column="block_info"/>
         <result property="state" column="state"/>
         <result property="errMsg" column="err_msg"/>

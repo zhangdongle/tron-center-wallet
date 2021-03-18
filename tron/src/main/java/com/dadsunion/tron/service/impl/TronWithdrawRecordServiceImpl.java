@@ -24,11 +24,11 @@ public class TronWithdrawRecordServiceImpl extends ServiceImpl<TronWithdrawRecor
     @Override
     public List<TronWithdrawRecord> queryList(TronWithdrawRecord tronWithdrawRecord) {
         LambdaQueryWrapper<TronWithdrawRecord> lqw = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(tronWithdrawRecord.getFrom())){
-            lqw.eq(TronWithdrawRecord::getFrom ,tronWithdrawRecord.getFrom());
+        if (StringUtils.isNotBlank(tronWithdrawRecord.getFromAddr())){
+            lqw.eq(TronWithdrawRecord::getFromAddr,tronWithdrawRecord.getFromAddr());
         }
-        if (StringUtils.isNotBlank(tronWithdrawRecord.getTo())){
-            lqw.eq(TronWithdrawRecord::getTo ,tronWithdrawRecord.getTo());
+        if (StringUtils.isNotBlank(tronWithdrawRecord.getToAddr())){
+            lqw.eq(TronWithdrawRecord::getToAddr,tronWithdrawRecord.getToAddr());
         }
         if (tronWithdrawRecord.getAmount() != null){
             lqw.eq(TronWithdrawRecord::getAmount ,tronWithdrawRecord.getAmount());

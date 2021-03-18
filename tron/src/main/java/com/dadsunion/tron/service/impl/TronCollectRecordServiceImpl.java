@@ -36,11 +36,11 @@ public class TronCollectRecordServiceImpl extends ServiceImpl<TronCollectRecordM
         if (tronCollectRecord.getAmount() != null){
             lqw.eq(TronCollectRecord::getAmount ,tronCollectRecord.getAmount());
         }
-        if (StringUtils.isNotBlank(tronCollectRecord.getFrom())){
-            lqw.eq(TronCollectRecord::getFrom ,tronCollectRecord.getFrom());
+        if (StringUtils.isNotBlank(tronCollectRecord.getFromAddr())){
+            lqw.eq(TronCollectRecord::getFromAddr,tronCollectRecord.getFromAddr());
         }
-        if (StringUtils.isNotBlank(tronCollectRecord.getTo())){
-            lqw.eq(TronCollectRecord::getTo ,tronCollectRecord.getTo());
+        if (StringUtils.isNotBlank(tronCollectRecord.getToAddr())){
+            lqw.eq(TronCollectRecord::getToAddr,tronCollectRecord.getToAddr());
         }
         if (tronCollectRecord.getState() != null){
             lqw.eq(TronCollectRecord::getState ,tronCollectRecord.getState());

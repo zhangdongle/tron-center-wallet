@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -54,7 +55,20 @@ public class TronDelegate {
 	@Value("${system.white-ip}")
 	private String whiteIp;
 
-	public static final Map<String, TronCoinType> COIN_TYPES = new HashMap<>(); // 所有代币地址 -> symbol 键值对
+	public static final Map<String, TronCoinType> COIN_CONTRACT = new HashMap<>(); // 所有代币地址 -> contractAddr 键值对
+	public static final Map<String, TronCoinType> COIN_SYMBOL = new HashMap<>(); // 所有代币地址 -> symbol 键值对
+
+	@PostConstruct
+	public void init() {
+		// 查询所有的币种，初始化
+		List<TronCoinType> list = coinTypeMapper.selectList(null);
+		if (list.size() > 0) {
+			list.stream().forEach(o -> {
+				COIN_SYMBOL.put(o.getSymbol(), o);
+				COIN_CONTRACT.put(o.getContractAddr(), o);
+			});
+		}
+	}
 
 	/**
 	 * 归集
@@ -65,16 +79,16 @@ public class TronDelegate {
 		// 查询冷钱包地址
 		TronSystemAddress coldAddress = getSystemAddress("cold");
 
-		TronCoinType coinType = COIN_TYPES.get(tcr.getSymbol());
+		TronCoinType coinType = COIN_SYMBOL.get(tcr.getSymbol());
 		// 获取充值地址的私钥
-		String to = tcr.getTo();
+		String to = tcr.getToAddr();
 		TronAddress tronAddress = getAddress(to);
 		BigInteger amount = convert(tcr.getSymbol(), tcr.getAmount());
 
 		// 添加一条链上记录
 		TronChainRecord chainRecord = new TronChainRecord();
-		chainRecord.setFrom(to);
-		chainRecord.setTo(coldAddress.getAddress());
+		chainRecord.setFromAddr(to);
+		chainRecord.setToAddr(coldAddress.getAddress());
 		chainRecord.setRelatedId(tcr.getId());
 		chainRecord.setAmount(amount);
 		chainRecord.setRemark("用户提币");
@@ -98,7 +112,6 @@ public class TronDelegate {
 				chainRecord.setState(ChainState.FAIL);
 				chainRecord.setErrMsg(result.getMessage());
 			}
-			chainRecordMapper.insert(chainRecord);
 			collectRecordMapper.updateById(tcr);
 		} catch (Exception e) {
 			log.error("提币异常", e);
@@ -116,12 +129,17 @@ public class TronDelegate {
 			throws Exception {
 		TransactionResult result = null;
 		// 是否是主链
-		if (coinType.isMaster()) {
+		if (coinType.getType() == ChainType.CHAINTYPE_TRANSFER) {
 			result = TrxHelper.transfer(fromSecretKey, to, amount);
-			log.info("请求结果", JSON.toJSONString(result));
-		} else {
+			log.info("普通转账->请求结果：{}", result);
+		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC10) {
 			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 5000l);
-			log.info("请求结果", JSON.toJSONString(result));
+			log.info("TRC10转账->请求结果：{}", JSON.toJSONString(result));
+		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC10) {
+			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 5000l);
+			log.info("TRC20转账->请求结果", JSON.toJSONString(result));
+		} else {
+			log.error("未知的交易类型，type:%s", coinType.getType());
 		}
 		return result;
 	}
@@ -135,10 +153,10 @@ public class TronDelegate {
 		}
 		TronNotifyVo notify = new TronNotifyVo();
 		notify.setHash(chain.getHash());
-		notify.setFrom(chain.getFrom());
-		notify.setTo(chain.getTo());
+		notify.setFrom(chain.getFromAddr());
+		notify.setTo(chain.getToAddr());
 		notify.setSendTime(chain.getCreateTime().getTime());
-		notify.setBornTrx(chain.getBornTrx());
+		notify.setTrxFee(chain.getTrxFee());
 		notify.setChainTime(chain.getChainTime().getTime());
 		if (twr.getState() == WithdrawState.HANDLING) {
 			notify.setStatus(WithdrawState.HANDLING_STR);
@@ -170,10 +188,10 @@ public class TronDelegate {
 		}
 		TronNotifyVo notify = new TronNotifyVo();
 		notify.setHash(chain.getHash());
-		notify.setFrom(chain.getFrom());
-		notify.setTo(chain.getTo());
+		notify.setFrom(chain.getFromAddr());
+		notify.setTo(chain.getToAddr());
 		notify.setSendTime(chain.getCreateTime().getTime());
-		notify.setBornTrx(chain.getBornTrx());
+		notify.setTrxFee(chain.getTrxFee());
 		notify.setChainTime(chain.getChainTime().getTime());
 		if (trr.getState() == WithdrawState.HANDLING) {
 			notify.setStatus(WithdrawState.HANDLING_STR);
@@ -203,7 +221,7 @@ public class TronDelegate {
 		QueryWrapper<TronChainRecord> query = new QueryWrapper<>();
 		query.eq("hash", chain.getHash());
 		List<TronChainRecord> list = chainRecordMapper.selectList(query);
-
+		// 除了充值记录，其他都会在tron_chain_record表中找到hash
 		// 判断是充值还是提现
 		if (list.size() > 0) {
 			if (list.size() == 2) {
@@ -213,18 +231,25 @@ public class TronDelegate {
 				return;
 			} else if (list.size() == 1) {
 				TronChainRecord tcr = list.get(0);
+				// 判断该记录是否已经处理过
+				if (tcr.getState() != ChainState.SENT) {
+					log.debug("该记录已经处理过：{}", chain.getHash());
+					return;
+				}
+
 				// 如果存在一条记录，查看该记录是否是提币记录
 				// 看该记录是否已经处理成功
 				chain.setId(tcr.getId());
 				if (ChainState.SENT == tcr.getState()) {
 					// 已发送代表是提币记录
 					// 判断该提币记录是否提到的是本系统其他地址，如果是的话，需要添加一条充值记录
-					TronAddress ta = getAddress(chain.getTo());
+					TronAddress ta = getAddress(chain.getToAddr());
 					if (ta != null) {
 						handleRechargeState(chain);
 						handleWithdrawState(tcr, chain);
 					} else {
-						handleWithdrawState(tcr, chain);
+						// 判断是归集业务还是提币业务
+						handleOtherState(tcr, chain);
 					}
 				} else {
 					// 如果是充值记录
@@ -233,6 +258,13 @@ public class TronDelegate {
 				}
 			}
 		} else {
+
+			// 确认地址是否为系统用户地址
+			TronAddress address = getAddress(chain.getToAddr());
+			if (address == null) {
+				log.debug("不是平台钱包地址：{}", chain.getToAddr());
+				return;
+			}
 			// 如果系统不存在记录，则表示该笔交易为充值
 			handleRechargeState(chain);
 		}
@@ -245,12 +277,21 @@ public class TronDelegate {
 	}
 
 	private BigDecimal convert(String symbol, BigInteger amount) {
-		TronCoinType coinType = COIN_TYPES.get(symbol);
+		TronCoinType coinType = COIN_SYMBOL.get(symbol);
 		return new BigDecimal(amount).movePointLeft(coinType.getScale());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	void handleRechargeState(TronChainRecord chain) {
+	public void handleOtherState(TronChainRecord old, TronChainRecord chain) {
+		if (ChainType.TYPE_WITHDRAW == old.getType()) {
+			handleWithdrawState(old, chain);
+		} else if (ChainType.TYPE_COLLECT == old.getType()) {
+			handleCollectState(old, chain);
+		}
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void handleRechargeState(TronChainRecord chain) {
 
 		// 换算金额
 		BigDecimal amount = convert(chain.getSymbol(), chain.getAmount());
@@ -259,8 +300,8 @@ public class TronDelegate {
 		TronRechargeRecord recharge = new TronRechargeRecord();
 		recharge.setAmount(amount);
 		recharge.setChainId(chain.getId());
-		recharge.setFrom(chain.getFrom());
-		recharge.setTo(chain.getTo());
+		recharge.setFromAddr(chain.getFromAddr());
+		recharge.setToAddr(chain.getToAddr());
 		recharge.setState(RechargeState.COLLECT_PENDING);
 		recharge.setSymbol(chain.getSymbol());
 		rechargeRecordMapper.insert(recharge);
@@ -269,7 +310,7 @@ public class TronDelegate {
 		chain.setState(ChainState.SUCCESS);
 		chain.setRemark("充值");
 		chain.setRelatedId(recharge.getId());
-		chain.setType(1);
+		chain.setType(ChainType.TYPE_RECHARGE);
 		chainRecordMapper.insert(chain);
 
 		recharge.setChainId(chain.getId());
@@ -279,8 +320,8 @@ public class TronDelegate {
 		// 添加归集记录
 		TronCollectRecord collect = new TronCollectRecord();
 		collect.setAmount(amount);
-		collect.setFrom(chain.getFrom());
-		collect.setTo(tsa.getAddress());
+		collect.setFromAddr(chain.getFromAddr());
+		collect.setToAddr(tsa.getAddress());
 		collect.setSymbol(chain.getSymbol());
 		collect.setRechargeChainId(chain.getId());
 		collect.setState(CollectState.PENDING);
@@ -289,14 +330,39 @@ public class TronDelegate {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	void handleWithdrawState(TronChainRecord old, TronChainRecord chain) {
+	public void handleCollectState(TronChainRecord old, TronChainRecord chain) {
+
+		// 修改链上状态
+		old.setState(ChainState.SUCCESS);
+		old.setHeight(chain.getHeight());
+		old.setBlockInfo(chain.getBlockInfo());
+		chainRecordMapper.updateById(old);
+
+		// 修改归集状态
+		TronCollectRecord collect = new TronCollectRecord();
+		collect.setId(old.getRelatedId());
+		collect.setState(WithdrawState.SUCCESS);
+		collectRecordMapper.updateById(collect);
+
+		// 修改充值的归集状态
+		TronRechargeRecord recharge = new TronRechargeRecord();
+		collect = collectRecordMapper.selectById(collect.getId());
+		recharge.setId(collect.getRechargeId());
+		recharge.setState(RechargeState.COLLECTED);
+		rechargeRecordMapper.updateById(recharge);
+
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void handleWithdrawState(TronChainRecord old, TronChainRecord chain) {
 		// 修改链上状态
 		old.setState(ChainState.SUCCESS);
 		old.setHeight(chain.getHeight());
 		old.setBlockInfo(chain.getBlockInfo());
 		old.setBandwidth(chain.getBandwidth());
 		old.setEnergy(chain.getEnergy());
-		old.setBornTrx(chain.getBornTrx());
+		old.setTrxFee(chain.getTrxFee());
+		old.setChainTime(chain.getChainTime());
 		chainRecordMapper.updateById(old);
 
 		// 修改提现状态
@@ -309,16 +375,17 @@ public class TronDelegate {
 
 	private BigInteger convert(String symbol, BigDecimal amount) {
 		TronCoinType coinType = getCoinType(symbol);
-		return amount.multiply(new BigDecimal(coinType.getScale())).toBigInteger();
+		return amount.movePointRight(coinType.getScale()).toBigIntegerExact();
 	}
 
 	public void withdraw(WithdrawDto dto) {
 		// 保存提现请求数据
 		TronWithdrawRecord withdraw = new TronWithdrawRecord();
+		withdraw.setRequestNo(dto.getRequestNo());
 		withdraw.setAmount(dto.getAmount());
 		withdraw.setSymbol(dto.getSymbol());
-		withdraw.setFrom(dto.getFromAddress());
-		withdraw.setTo(dto.getToAddress());
+		withdraw.setFromAddr(dto.getFromAddress());
+		withdraw.setToAddr(dto.getToAddress());
 		withdraw.setState(WithdrawState.WAITING);
 		withdrawRecordMapper.insert(withdraw);
 	}
@@ -359,25 +426,27 @@ public class TronDelegate {
 			return;
 		}
 		TronSystemAddress systemAddr = getSystemAddress("withdraw");
-		TronCoinType coinType = COIN_TYPES.get(twr.getSymbol());
+		TronCoinType coinType = COIN_SYMBOL.get(twr.getSymbol());
 		BigInteger amount = convert(twr.getSymbol(), twr.getAmount());
 
 		TronChainRecord chainRecord = new TronChainRecord();
-		chainRecord.setFrom(systemAddr.getAddress());
-		chainRecord.setTo(twr.getTo());
+		chainRecord.setFromAddr(systemAddr.getAddress());
+		chainRecord.setToAddr(twr.getToAddr());
 		chainRecord.setRelatedId(twr.getId());
 		chainRecord.setAmount(amount);
+		chainRecord.setContractAddr(coinType.getContractAddr());
+		chainRecord.setSymbol(coinType.getSymbol());
 		chainRecord.setRemark("用户提币");
+		chainRecord.setType(2); //
+		chainRecord.setChainType(coinType.getType());
 		try {
-			log.info("提币发起,from:%s,to:%s,amount:%s", systemAddr.getAddress(), twr.getTo(), twr.getAmount());
-			TransactionResult result = transfer(systemAddr.getPrivateKey(), twr.getTo(), coinType,
-					new BigDecimal(amount));
+			log.info("提币发起,from:{},to:{},amount:{}", systemAddr.getAddress(), twr.getToAddr(), twr.getAmount());
+			TransactionResult result = transfer(systemAddr.getPrivateKey(), twr.getToAddr(), coinType, twr.getAmount());
 
-			// 修改提现状态
-			twr.setChainId(chainRecord.getId());
 			// 如果发起成功，则修改状态为已发起
 			twr.setState(WithdrawState.HANDLING);
 			if (result.getResult()) {
+				// 修改提现状态
 				// 链上插入一条执行记录
 				chainRecord.setState(ChainState.SENT);
 				chainRecord.setHash(result.getHash());
@@ -385,17 +454,31 @@ public class TronDelegate {
 				// 链上插入一条执行记录
 				chainRecord.setState(ChainState.FAIL);
 				chainRecord.setErrMsg(result.getMessage());
+				log.error("转账请求失败：{}", result.getMessage());
 			}
-			withdrawRecordMapper.updateById(twr);
 		} catch (Exception e) {
-			log.error("提币异常", e);
+			// 参数异常，则修改提现表状态
+			if ("invalid input".equals(e.getMessage())) {
+				log.error("提币异常=>参数异常，{}", twr.getFromAddr());
+				// 链上插入一条执行记录
+				twr.setState(WithdrawState.FAILURE);
+				twr.setErrMsg("请求异常，请检查参数");
+				withdrawRecordMapper.updateById(twr);
+				chainRecord.setState(ChainState.FAIL);
+				chainRecord.setErrMsg("参数异常，" + e.getMessage());
+			} else {
+				log.error("提币异常", e);
+				chainRecord.setState(ChainState.FAIL);
+				chainRecord.setErrMsg("未知异常，" + e.getMessage());
+			}
 			// 修改提现记录为失败
 			// 记录链上数据，并排查
 			// 链上插入一条执行记录
-			chainRecord.setState(ChainState.FAIL);
-			chainRecord.setErrMsg("未知异常");
+
 		} finally {
 			chainRecordMapper.insert(chainRecord);
+			twr.setChainId(chainRecord.getId());
+			withdrawRecordMapper.updateById(twr);
 		}
 	}
 

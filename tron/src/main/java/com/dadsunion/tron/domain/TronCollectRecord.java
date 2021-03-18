@@ -57,11 +57,11 @@ private static final long serialVersionUID=1L;
 
     /** 来源地址，用户平台地址 */
     @Excel(name = "来源地址，用户平台地址")
-    private String from;
+    private String fromAddr;
 
     /** 目标地址 */
     @Excel(name = "目标地址")
-    private String to;
+    private String toAddr;
 
     /** 状态：0.待归集，1.归集中，2.归集完成，3.归集失败 */
     @Excel(name = "状态：0.待归集，1.归集中，2.归集完成，3.归集失败")

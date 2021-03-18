@@ -80,8 +80,9 @@ public class TronController {
 		q1.eq("address", dto.getFromAddress());
 		TronAddress address = addressService.getOne(q1);
 		if (address == null) {
-			return R.failed("地址信息异常");
+			return R.failed("地址信息异常:" + dto.getFromAddress());
 		}
+
 		tronService.withdraw(dto);
 		return R.ok(null);
 	}

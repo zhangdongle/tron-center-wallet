@@ -1,6 +1,7 @@
 package com.dadsunion.tron.domain;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,8 @@ private static final long serialVersionUID=1L;
     /** 区块高度 */
     @Excel(name = "区块高度")
     private Long block;
+
+    private Date updateTime;
 
     @TableField(exist = false)
     private Map<String, Object> params = new HashMap<>();

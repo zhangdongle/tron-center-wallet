@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dadsunion.tron.mapper.TronBlockMapper">
-    
+
     <resultMap type="TronBlock" id="TronBlockResult">
-        <result property="block"    column="block"    />
+        <result property="block" column="block"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
 

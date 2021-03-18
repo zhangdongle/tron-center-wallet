@@ -40,11 +40,11 @@ private static final long serialVersionUID=1L;
 
     /** 消耗地址 */
     @Excel(name = "消耗地址")
-    private String from;
+    private String fromAddr;
 
     /** 目标地址 */
     @Excel(name = "目标地址")
-    private String to;
+    private String toAddr;
 
     /** 类型：1.激活，2.获取带宽，3.获取能量 */
     @Excel(name = "类型：1.激活，2.获取带宽，3.获取能量")

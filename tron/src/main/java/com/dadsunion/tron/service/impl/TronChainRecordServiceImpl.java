@@ -33,11 +33,11 @@ public class TronChainRecordServiceImpl extends ServiceImpl<TronChainRecordMappe
         if (StringUtils.isNotBlank(tronChainRecord.getContractAddr())){
             lqw.eq(TronChainRecord::getContractAddr ,tronChainRecord.getContractAddr());
         }
-        if (StringUtils.isNotBlank(tronChainRecord.getFrom())){
-            lqw.eq(TronChainRecord::getFrom ,tronChainRecord.getFrom());
+        if (StringUtils.isNotBlank(tronChainRecord.getFromAddr())){
+            lqw.eq(TronChainRecord::getFromAddr,tronChainRecord.getFromAddr());
         }
-        if (StringUtils.isNotBlank(tronChainRecord.getTo())){
-            lqw.eq(TronChainRecord::getTo ,tronChainRecord.getTo());
+        if (StringUtils.isNotBlank(tronChainRecord.getToAddr())){
+            lqw.eq(TronChainRecord::getToAddr,tronChainRecord.getToAddr());
         }
         if (tronChainRecord.getAmount() != null){
             lqw.eq(TronChainRecord::getAmount ,tronChainRecord.getAmount());
@@ -48,8 +48,8 @@ public class TronChainRecordServiceImpl extends ServiceImpl<TronChainRecordMappe
         if (tronChainRecord.getEnergy() != null){
             lqw.eq(TronChainRecord::getEnergy ,tronChainRecord.getEnergy());
         }
-        if (tronChainRecord.getBornTrx() != null){
-            lqw.eq(TronChainRecord::getBornTrx ,tronChainRecord.getBornTrx());
+        if (tronChainRecord.getTrxFee() != null){
+            lqw.eq(TronChainRecord::getTrxFee,tronChainRecord.getTrxFee());
         }
         if (StringUtils.isNotBlank(tronChainRecord.getBlockInfo())){
             lqw.eq(TronChainRecord::getBlockInfo ,tronChainRecord.getBlockInfo());

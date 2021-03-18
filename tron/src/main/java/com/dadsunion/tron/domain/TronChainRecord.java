@@ -36,9 +36,13 @@ public class TronChainRecord implements Serializable {
 	@TableId(value = "id")
 	private Long id;
 
-	/** 类型，1.转账，2.带宽，3流量，4.合约 */
-	@Excel(name = "类型，1.转账，2.带宽，3流量，4.合约")
+	/** 类型，1.充值，2.提现 */
+	@Excel(name = "类型，1.充值，2.提现")
 	private Integer type;
+
+	/** 链上类型，1.转账，2.合约 */
+	@Excel(name = "类型，1.转账，2.合约")
+	private Integer chainType;
 
 	/** 区块高度 */
 	@Excel(name = "区块高度")
@@ -50,11 +54,11 @@ public class TronChainRecord implements Serializable {
 
 	/** 发送地址 */
 	@Excel(name = "发送地址")
-	private String from;
+	private String fromAddr;
 
 	/** 目标地址 */
 	@Excel(name = "目标地址")
-	private String to;
+	private String toAddr;
 
 	/** 金额，没有小数位 */
 	@Excel(name = "金额，没有小数位")
@@ -70,7 +74,10 @@ public class TronChainRecord implements Serializable {
 
 	/** 消耗trx */
 	@Excel(name = "消耗trx")
-	private BigDecimal bornTrx;
+	private BigDecimal trxFee;
+
+	@Excel(name = "消耗同步状态")
+	private Integer lossSt;
 
 	/** 交易hash */
 	@Excel(name = "交易hash")
