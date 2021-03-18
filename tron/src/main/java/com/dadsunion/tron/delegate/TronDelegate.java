@@ -320,9 +320,9 @@ public class TronDelegate {
 		// 添加归集记录
 		TronCollectRecord collect = new TronCollectRecord();
 		collect.setAmount(amount);
+		collect.setSymbol(chain.getSymbol());
 		collect.setFromAddr(chain.getFromAddr());
 		collect.setToAddr(tsa.getAddress());
-		collect.setSymbol(chain.getSymbol());
 		collect.setRechargeChainId(chain.getId());
 		collect.setState(CollectState.PENDING);
 		collect.setRechargeId(recharge.getId());
