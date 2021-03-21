@@ -42,6 +42,7 @@ public class TronRechargeRecordServiceImpl extends ServiceImpl<TronRechargeRecor
         if (tronRechargeRecord.getChainId() != null){
             lqw.eq(TronRechargeRecord::getChainId ,tronRechargeRecord.getChainId());
         }
+        lqw.orderByDesc(TronRechargeRecord::getId);
         return this.list(lqw);
     }
 }

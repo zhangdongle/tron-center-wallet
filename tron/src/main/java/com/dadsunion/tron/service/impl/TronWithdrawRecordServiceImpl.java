@@ -42,6 +42,7 @@ public class TronWithdrawRecordServiceImpl extends ServiceImpl<TronWithdrawRecor
         if (tronWithdrawRecord.getChainId() != null){
             lqw.eq(TronWithdrawRecord::getChainId ,tronWithdrawRecord.getChainId());
         }
+        lqw.orderByDesc(TronWithdrawRecord::getId);
         return this.list(lqw);
     }
 }

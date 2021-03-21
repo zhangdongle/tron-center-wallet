@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ruoyi</artifactId>
         <groupId>com.dadsunion</groupId>
-        <version>3.4.0</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,7 +30,7 @@
             <systemPath>${project.basedir}/src/main/resources/lib/tron-sdk-1.0.jar</systemPath>
         </dependency>
 
-        <dependency>
+        <!-- <dependency>
             <groupId>com.github.ki5fpl.tronj</groupId>
             <artifactId>abi</artifactId>
             <version>0.4.0</version>
@@ -39,7 +39,7 @@
             <groupId>com.github.ki5fpl.tronj</groupId>
             <artifactId>client</artifactId>
             <version>0.4.0</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.madgag.spongycastle</groupId>
             <artifactId>core</artifactId>

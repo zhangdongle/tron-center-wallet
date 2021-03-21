@@ -59,10 +59,6 @@ private static final long serialVersionUID=1L;
     @TableField(exist = false)
     private Map<String, Object> params = new HashMap<>();
 
-    public TronCoinType getObject(){
-    	return this;
-	}
-
     public boolean isMaster(){
     	return isMaster == 1;
 	}

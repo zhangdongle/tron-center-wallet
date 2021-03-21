@@ -15,7 +15,9 @@
             "name": "Launch RuoYiApplication",
             "request": "launch",
             "mainClass": "com.dadsunion.RuoYiApplication",
-            "projectName": "tron-admin"
+            "projectName": "tron-admin",
+            "console": "internalConsole",
+            "vmArgs": "-Dspring.profiles.active=dev"
         },
         {
             "type": "java",

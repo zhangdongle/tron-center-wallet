@@ -1,37 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="来源地址" prop="from">
+      <el-form-item label="提现编号" prop="requestNo">
         <el-input
-          v-model="queryParams.from"
-          placeholder="请输入来源地址"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="用户平台地址" prop="to">
-        <el-input
-          v-model="queryParams.to"
-          placeholder="请输入用户平台地址"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="金额" prop="amount">
-        <el-input
-          v-model="queryParams.amount"
-          placeholder="请输入金额"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="状态，0.待发起，1.处理中，2.成功，3.失败" prop="state">
-        <el-input
-          v-model="queryParams.state"
-          placeholder="请输入状态，0.待发起，1.处理中，2.成功，3.失败"
+          v-model="queryParams.requestNo"
+          placeholder="请输入提现编号"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -46,14 +19,43 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="链上交互ID" prop="chainId">
+      <el-form-item label="来源地址" prop="fromAddr">
         <el-input
-          v-model="queryParams.chainId"
-          placeholder="请输入链上交互ID"
+          v-model="queryParams.fromAddr"
+          placeholder="请输入来源地址"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
         />
+      </el-form-item>
+      <el-form-item label="用户平台地址" prop="toAddr" label-width="120px">
+        <el-input
+          v-model="queryParams.toAddr"
+          placeholder="请输入用户平台地址"
+          clearable
+          size="small"
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="状态" prop="state">
+        <el-select v-model="queryParams.state" placeholder="请选择状态" clearable size="small">
+          <el-option
+            v-for="dict in stateOptions"
+            :key="dict.dictValue"
+            :label="dict.dictLabel"
+            :value="dict.dictValue"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="回调状态" prop="notifySt">
+        <el-select v-model="queryParams.notifySt" placeholder="请选择回调状态" clearable size="small">
+          <el-option
+            v-for="dict in notifyStOptions"
+            :key="dict.dictValue"
+            :label="dict.dictLabel"
+            :value="dict.dictValue"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -109,13 +111,16 @@
 
     <el-table v-loading="loading" :data="withdrawList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="链上交互ID" align="center" prop="id" v-if="false"/>
-      <el-table-column label="来源地址" align="center" prop="from" />
-      <el-table-column label="用户平台地址" align="center" prop="to" />
+      <el-table-column label="回调状态" align="center" prop="id" v-if="false"/>
+      <el-table-column label="提现编号" align="center" prop="requestNo" />
+      <el-table-column label="来源地址" width="400" align="center" prop="fromAddr" />
+      <el-table-column label="用户平台地址"  width="400" align="center" prop="toAddr" />
       <el-table-column label="金额" align="center" prop="amount" />
-      <el-table-column label="状态，0.待发起，1.处理中，2.成功，3.失败" align="center" prop="state" />
+      <el-table-column label="状态" align="center" prop="state" :formatter="stateFormat" />
       <el-table-column label="币种符号" align="center" prop="symbol" />
       <el-table-column label="链上交互ID" align="center" prop="chainId" />
+      <el-table-column label="错误信息" align="center" prop="errMsg" />
+      <el-table-column label="回调状态" align="center" prop="notifySt" :formatter="notifyStFormat" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -147,23 +152,46 @@
     <!-- 添加或修改提现记录对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="来源地址" prop="from">
-          <el-input v-model="form.from" placeholder="请输入来源地址" />
+        <el-form-item label="提现编号" prop="requestNo">
+          <el-input v-model="form.requestNo" placeholder="请输入提现编号" />
         </el-form-item>
-        <el-form-item label="用户平台地址" prop="to">
-          <el-input v-model="form.to" placeholder="请输入用户平台地址" />
+        <el-form-item label="来源地址" prop="fromAddr">
+          <el-input v-model="form.fromAddr" placeholder="请输入来源地址" />
         </el-form-item>
         <el-form-item label="金额" prop="amount">
           <el-input v-model="form.amount" placeholder="请输入金额" />
         </el-form-item>
-        <el-form-item label="状态，0.待发起，1.处理中，2.成功，3.失败" prop="state">
-          <el-input v-model="form.state" placeholder="请输入状态，0.待发起，1.处理中，2.成功，3.失败" />
+        <el-form-item label="用户平台地址" prop="toAddr">
+          <el-input v-model="form.toAddr" placeholder="请输入用户平台地址" />
+        </el-form-item>
+        <el-form-item label="状态" prop="state">
+          <el-select v-model="form.state" placeholder="请选择状态">
+            <el-option
+              v-for="dict in stateOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="币种符号" prop="symbol">
           <el-input v-model="form.symbol" placeholder="请输入币种符号" />
         </el-form-item>
         <el-form-item label="链上交互ID" prop="chainId">
           <el-input v-model="form.chainId" placeholder="请输入链上交互ID" />
+        </el-form-item>
+        <el-form-item label="错误信息" prop="errMsg">
+          <el-input v-model="form.errMsg" placeholder="请输入错误信息" />
+        </el-form-item>
+        <el-form-item label="回调状态" prop="notifySt">
+          <el-select v-model="form.notifySt" placeholder="请选择回调状态">
+            <el-option
+              v-for="dict in notifyStOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -201,32 +229,42 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 状态字典
+      stateOptions: [],
+      // 回调状态字典
+      notifyStOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        from: undefined,
-        to: undefined,
+        requestNo: undefined,
+        fromAddr: undefined,
         amount: undefined,
+        toAddr: undefined,
         state: undefined,
         symbol: undefined,
         chainId: undefined,
+        errMsg: undefined,
+        notifySt: undefined
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        from: [
-          { required: true, message: "来源地址不能为空", trigger: "blur" }
+        requestNo: [
+          { required: true, message: "提现编号不能为空", trigger: "blur" }
         ],
-        to: [
-          { required: true, message: "用户平台地址不能为空", trigger: "blur" }
+        fromAddr: [
+          { required: true, message: "来源地址不能为空", trigger: "blur" }
         ],
         amount: [
           { required: true, message: "金额不能为空", trigger: "blur" }
         ],
+        toAddr: [
+          { required: true, message: "用户平台地址不能为空", trigger: "blur" }
+        ],
         state: [
-          { required: true, message: "状态，0.待发起，1.处理中，2.成功，3.失败不能为空", trigger: "blur" }
+          { required: true, message: "状态不能为空", trigger: "change" }
         ],
         symbol: [
           { required: true, message: "币种符号不能为空", trigger: "blur" }
@@ -242,6 +280,12 @@ export default {
   },
   created() {
     this.getList();
+    this.getDicts("tron_handle_state").then(response => {
+      this.stateOptions = response.data;
+    });
+    this.getDicts("tron_notify_state").then(response => {
+      this.notifyStOptions = response.data;
+    });
   },
   methods: {
     /** 查询提现记录列表 */
@@ -253,6 +297,14 @@ export default {
         this.loading = false;
       });
     },
+    // 状态字典翻译
+    stateFormat(row, column) {
+      return this.selectDictLabel(this.stateOptions, row.state);
+    },
+    // 回调状态字典翻译
+    notifyStFormat(row, column) {
+      return this.selectDictLabel(this.notifyStOptions, row.notifySt);
+    },
     // 取消按钮
     cancel() {
       this.open = false;
@@ -262,14 +314,17 @@ export default {
     reset() {
       this.form = {
         id: undefined,
-        from: undefined,
-        to: undefined,
+        requestNo: undefined,
+        fromAddr: undefined,
         amount: undefined,
+        toAddr: undefined,
         state: undefined,
         symbol: undefined,
         chainId: undefined,
         createTime: undefined,
-        updateTime: undefined
+        updateTime: undefined,
+        errMsg: undefined,
+        notifySt: undefined
       };
       this.resetForm("form");
     },

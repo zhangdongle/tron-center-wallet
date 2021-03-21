@@ -52,9 +52,6 @@ public class TronDelegate {
 	@Value("${system.notify.url}")
 	private String notifyUrl;
 
-	@Value("${system.white-ip}")
-	private String whiteIp;
-
 	public static final Map<String, TronCoinType> COIN_CONTRACT = new HashMap<>(); // 所有代币地址 -> contractAddr 键值对
 	public static final Map<String, TronCoinType> COIN_SYMBOL = new HashMap<>(); // 所有代币地址 -> symbol 键值对
 
@@ -72,8 +69,10 @@ public class TronDelegate {
 
 	/**
 	 * 归集
-	 * @param tcr
+	 * 
+	 * @param tcr 不开启事务，可能已经归集成功但是保存异常，回滚会丢失信息
 	 */
+	// @Transactional(rollbackFor = Exception.class)
 	public void collect(TronCollectRecord tcr) {
 		// 将充值进来的代币，发起转账到冷钱包
 		// 查询冷钱包地址
@@ -81,27 +80,25 @@ public class TronDelegate {
 
 		TronCoinType coinType = COIN_SYMBOL.get(tcr.getSymbol());
 		// 获取充值地址的私钥
+		String from = tcr.getFromAddr();
 		String to = tcr.getToAddr();
-		TronAddress tronAddress = getAddress(to);
+		TronAddress tronAddress = getAddress(from);
 		BigInteger amount = convert(tcr.getSymbol(), tcr.getAmount());
 
 		// 添加一条链上记录
 		TronChainRecord chainRecord = new TronChainRecord();
-		chainRecord.setFromAddr(to);
+		chainRecord.setFromAddr(from);
 		chainRecord.setToAddr(coldAddress.getAddress());
 		chainRecord.setRelatedId(tcr.getId());
 		chainRecord.setAmount(amount);
-		chainRecord.setRemark("用户提币");
-
+		chainRecord.setRemark("归集");
+		chainRecord.setType(ChainType.TYPE_COLLECT);
+		chainRecord.setChainType(coinType.getType());
+		chainRecord.setSymbol(tcr.getSymbol());
 		try {
-			log.info("归集发起,from:%s,to:%s,amount:%s", to, coldAddress.getAddress(), amount);
+			log.info("归集发起,from:{},to:{},amount:{}", to, coldAddress.getAddress(), amount);
 			TransactionResult result = transfer(tronAddress.getSecretkey(), coldAddress.getAddress(), coinType,
-					new BigDecimal(amount));
-
-			// 修改提现状态
-			tcr.setCollectChainId(chainRecord.getId());
-			// 如果发起成功，则修改状态为已发起
-			tcr.setState(CollectState.COLLECTING);
+					tcr.getAmount());
 
 			if (result.getResult()) {
 				// 链上插入一条执行记录
@@ -112,16 +109,20 @@ public class TronDelegate {
 				chainRecord.setState(ChainState.FAIL);
 				chainRecord.setErrMsg(result.getMessage());
 			}
-			collectRecordMapper.updateById(tcr);
+
 		} catch (Exception e) {
-			log.error("提币异常", e);
+			log.error("归集异常", e);
 			// 修改提现记录为失败
 			// 记录链上数据，并排查
 			// 链上插入一条执行记录
 			chainRecord.setState(ChainState.FAIL);
-			chainRecord.setErrMsg("未知异常");
+			chainRecord.setErrMsg("未知异常," + e.getMessage());
 		} finally {
 			chainRecordMapper.insert(chainRecord);
+			tcr.setCollectChainId(chainRecord.getId());
+			// 如果发起成功，则修改状态为已发起
+			tcr.setState(CollectState.COLLECTING);
+			collectRecordMapper.updateById(tcr);
 		}
 	}
 
@@ -133,13 +134,13 @@ public class TronDelegate {
 			result = TrxHelper.transfer(fromSecretKey, to, amount);
 			log.info("普通转账->请求结果：{}", result);
 		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC10) {
-			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 5000l);
+			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 1000000l);
 			log.info("TRC10转账->请求结果：{}", JSON.toJSONString(result));
-		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC10) {
-			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 5000l);
+		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC20) {
+			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 1000000l);
 			log.info("TRC20转账->请求结果", JSON.toJSONString(result));
 		} else {
-			log.error("未知的交易类型，type:%s", coinType.getType());
+			log.error("未知的交易类型，type:{}", coinType.getType());
 		}
 		return result;
 	}
@@ -157,7 +158,7 @@ public class TronDelegate {
 		notify.setTo(chain.getToAddr());
 		notify.setSendTime(chain.getCreateTime().getTime());
 		notify.setTrxFee(chain.getTrxFee());
-		notify.setChainTime(chain.getChainTime().getTime());
+		notify.setChainTime(chain.getChainTime() == null ? null : chain.getChainTime().getTime());
 		if (twr.getState() == WithdrawState.HANDLING) {
 			notify.setStatus(WithdrawState.HANDLING_STR);
 		} else if (twr.getState() == WithdrawState.SUCCESS) {
@@ -168,9 +169,9 @@ public class TronDelegate {
 		}
 		String params = JSON.toJSONString(notify);
 		// 修改通知状态
-		log.info("回调信息，json:%s", params);
+		log.info("回调信息，json:{}", params);
 		String result = HttpUtils.sendPost(notifyUrl, params);
-		log.info("回调结果：%s", result);
+		log.info("回调结果：{}", result);
 		if ("SUCCESS".equals(result)) {
 			twr.setNotifySt(NotifyState.SUCCESS);
 		} else {
@@ -203,9 +204,9 @@ public class TronDelegate {
 		}
 		String params = JSON.toJSONString(notify);
 		// 修改通知状态
-		log.info("回调信息，json:%s", params);
+		log.info("回调信息，json:{}", params);
 		String result = HttpUtils.sendPost(notifyUrl, params);
-		log.info("回调结果：%s", result);
+		log.info("回调结果：{}", result);
 		if ("SUCCESS".equals(result)) {
 			trr.setNotifySt(NotifyState.SUCCESS);
 		} else {
@@ -321,7 +322,7 @@ public class TronDelegate {
 		TronCollectRecord collect = new TronCollectRecord();
 		collect.setAmount(amount);
 		collect.setSymbol(chain.getSymbol());
-		collect.setFromAddr(chain.getFromAddr());
+		collect.setFromAddr(chain.getToAddr());
 		collect.setToAddr(tsa.getAddress());
 		collect.setRechargeChainId(chain.getId());
 		collect.setState(CollectState.PENDING);
@@ -390,9 +391,9 @@ public class TronDelegate {
 		withdrawRecordMapper.insert(withdraw);
 	}
 
-
 	/**
 	 * 根据类型获取系统地址
+	 * 
 	 * @param type cold，冷钱包地址，withdraw，提币地址，consume，消耗地址
 	 * @return
 	 */
@@ -405,6 +406,7 @@ public class TronDelegate {
 
 	/**
 	 * 根据币种符号查询币种信息，币种符号唯一
+	 * 
 	 * @param symbol
 	 * @return
 	 */
@@ -437,7 +439,7 @@ public class TronDelegate {
 		chainRecord.setContractAddr(coinType.getContractAddr());
 		chainRecord.setSymbol(coinType.getSymbol());
 		chainRecord.setRemark("用户提币");
-		chainRecord.setType(2); //
+		chainRecord.setType(ChainType.TYPE_WITHDRAW); //
 		chainRecord.setChainType(coinType.getType());
 		try {
 			log.info("提币发起,from:{},to:{},amount:{}", systemAddr.getAddress(), twr.getToAddr(), twr.getAmount());
@@ -483,8 +485,7 @@ public class TronDelegate {
 	}
 
 	/**
-	 * 通过交易hash查询链上状态
-	 * 如果成功则修改状态并保存交易信息
+	 * 通过交易hash查询链上状态 如果成功则修改状态并保存交易信息
 	 *
 	 * @param hash
 	 */
@@ -518,6 +519,7 @@ public class TronDelegate {
 
 	/**
 	 * 创建钱包地址
+	 * 
 	 * @param userId
 	 * @return
 	 */

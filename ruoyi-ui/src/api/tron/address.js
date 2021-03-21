@@ -51,3 +51,12 @@ export function exportAddress(query) {
     params: query
   })
 }
+
+// 自动生成地址
+export function genAddress(data){
+  return request({
+    url: '/api/tron/address',
+    method: 'post',
+    data: data
+  })
+}

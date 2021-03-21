@@ -63,6 +63,7 @@ public class TronChainRecordServiceImpl extends ServiceImpl<TronChainRecordMappe
         if (tronChainRecord.getRelatedId() != null){
             lqw.eq(TronChainRecord::getRelatedId ,tronChainRecord.getRelatedId());
         }
+        lqw.orderByDesc(TronChainRecord::getId);
         return this.list(lqw);
     }
 }

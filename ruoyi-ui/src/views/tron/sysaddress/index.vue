@@ -12,8 +12,22 @@
       </el-form-item>
       <el-form-item label="地址类型" prop="type">
         <el-select v-model="queryParams.type" placeholder="请选择地址类型" clearable size="small">
-          <el-option label="请选择字典生成" value="" />
+          <el-option
+            v-for="dict in typeOptions"
+            :key="dict.dictValue"
+            :label="dict.dictLabel"
+            :value="dict.dictValue"
+          />
         </el-select>
+      </el-form-item>
+      <el-form-item label="钱包秘钥" prop="privateKey">
+        <el-input
+          v-model="queryParams.privateKey"
+          placeholder="请输入钱包秘钥"
+          clearable
+          size="small"
+          @keyup.enter.native="handleQuery"
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -21,57 +35,12 @@
       </el-form-item>
     </el-form>
 
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['tron:sysaddress:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['tron:sysaddress:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="el-icon-delete"
-          size="mini"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['tron:sysaddress:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['tron:sysaddress:export']"
-        >导出</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
-
     <el-table v-loading="loading" :data="sysaddressList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="地址类型" align="center" prop="id" v-if="false"/>
+      <el-table-column label="钱包秘钥" align="center" prop="id" v-if="false"/>
       <el-table-column label="系统地址" align="center" prop="address" />
-      <el-table-column label="地址类型" align="center" prop="type" />
+      <el-table-column label="地址类型" align="center" prop="type" :formatter="typeFormat" />
+      <el-table-column label="钱包秘钥" width="550" align="center" prop="privateKey" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -81,13 +50,6 @@
             @click="handleUpdate(scope.row)"
             v-hasPermi="['tron:sysaddress:edit']"
           >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['tron:sysaddress:remove']"
-          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -108,8 +70,16 @@
         </el-form-item>
         <el-form-item label="地址类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择地址类型">
-            <el-option label="请选择字典生成" value="" />
+            <el-option
+              v-for="dict in typeOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="dict.dictValue"
+            ></el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="钱包秘钥" prop="privateKey">
+          <el-input v-model="form.privateKey" placeholder="请输入钱包秘钥" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -147,12 +117,15 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 地址类型字典
+      typeOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         address: undefined,
-        type: undefined
+        type: undefined,
+        privateKey: undefined
       },
       // 表单参数
       form: {},
@@ -163,12 +136,15 @@ export default {
         ],
         type: [
           { required: true, message: "地址类型不能为空", trigger: "change" }
-        ]
+        ],
       }
     };
   },
   created() {
     this.getList();
+    this.getDicts("tron_address_type").then(response => {
+      this.typeOptions = response.data;
+    });
   },
   methods: {
     /** 查询系统地址列表 */
@@ -180,6 +156,10 @@ export default {
         this.loading = false;
       });
     },
+    // 地址类型字典翻译
+    typeFormat(row, column) {
+      return this.selectDictLabel(this.typeOptions, row.type);
+    },
     // 取消按钮
     cancel() {
       this.open = false;
@@ -190,7 +170,8 @@ export default {
       this.form = {
         id: undefined,
         address: undefined,
-        type: undefined
+        type: undefined,
+        privateKey: undefined
       };
       this.resetForm("form");
     },
@@ -209,12 +190,6 @@ export default {
       this.ids = selection.map(item => item.id)
       this.single = selection.length!==1
       this.multiple = !selection.length
-    },
-    /** 新增按钮操作 */
-    handleAdd() {
-      this.reset();
-      this.open = true;
-      this.title = "添加系统地址";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -237,42 +212,10 @@ export default {
               this.getList();
             });
           } else {
-            addSysaddress(this.form).then(response => {
-              this.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
           }
         }
       });
     },
-    /** 删除按钮操作 */
-    handleDelete(row) {
-      const ids = row.id || this.ids;
-      this.$confirm('是否确认删除系统地址编号为"' + ids + '"的数据项?', "警告", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(function() {
-          return delSysaddress(ids);
-        }).then(() => {
-          this.getList();
-          this.msgSuccess("删除成功");
-        })
-    },
-    /** 导出按钮操作 */
-    handleExport() {
-      const queryParams = this.queryParams;
-      this.$confirm('是否确认导出所有系统地址数据项?', "警告", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(function() {
-          return exportSysaddress(queryParams);
-        }).then(response => {
-          this.download(response.msg);
-        })
-    }
   }
 };
 </script>

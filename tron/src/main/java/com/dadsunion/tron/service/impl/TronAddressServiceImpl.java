@@ -24,18 +24,19 @@ public class TronAddressServiceImpl extends ServiceImpl<TronAddressMapper, TronA
     @Override
     public List<TronAddress> queryList(TronAddress tronAddress) {
         LambdaQueryWrapper<TronAddress> lqw = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(tronAddress.getUserId())){
-            lqw.eq(TronAddress::getUserId ,tronAddress.getUserId());
+        if (StringUtils.isNotBlank(tronAddress.getUserId())) {
+            lqw.eq(TronAddress::getUserId, tronAddress.getUserId());
         }
-        if (StringUtils.isNotBlank(tronAddress.getAddress())){
-            lqw.eq(TronAddress::getAddress ,tronAddress.getAddress());
+        if (StringUtils.isNotBlank(tronAddress.getAddress())) {
+            lqw.eq(TronAddress::getAddress, tronAddress.getAddress());
         }
-        if (tronAddress.getActivated() != null){
-            lqw.eq(TronAddress::getActivated ,tronAddress.getActivated());
+        if (tronAddress.getActivated() != null) {
+            lqw.eq(TronAddress::getActivated, tronAddress.getActivated());
         }
-        if (StringUtils.isNotBlank(tronAddress.getSecretkey())){
-            lqw.eq(TronAddress::getSecretkey ,tronAddress.getSecretkey());
+        if (StringUtils.isNotBlank(tronAddress.getSecretkey())) {
+            lqw.eq(TronAddress::getSecretkey, tronAddress.getSecretkey());
         }
+        lqw.orderByDesc(TronAddress::getId);
         return this.list(lqw);
     }
 }

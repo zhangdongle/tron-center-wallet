@@ -1,5 +1,14 @@
 package com.dadsunion.tron.task;
 
+import java.math.BigInteger;
+import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -16,19 +25,13 @@ import com.dadsunion.tron.mapper.TronBlockMapper;
 import com.dadsunion.tron.utils.TransformUtil;
 import com.sunlight.tronsdk.SdkConfig;
 import com.sunlight.tronsdk.TrxQuery;
-import com.sunlight.tronsdk.address.Address;
 import com.sunlight.tronsdk.address.AddressHelper;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.tron.common.utils.ByteArray;
-import org.tron.walletserver.WalletApi;
+import org.springframework.web.client.ResourceAccessException;
 
-import javax.annotation.PostConstruct;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component("syncBlockTask")
@@ -90,7 +93,6 @@ public class SyncBlockTask {
 			startSync = syncNumber;
 		}
 
-
 		log.info("当前最新区块高度：{}，同步区块：{}", lastBlockHeight, syncNumber);
 		if (syncNumber.compareTo(lastBlockHeight) > 0) {
 			lastBlockHeight = getLastBlockHeight();
@@ -106,8 +108,7 @@ public class SyncBlockTask {
 			lastBlockHeight = getLastBlockHeight();
 		}
 
-
-		//		log.info("====> 扫描链上记录 TASK START!!");
+		// log.info("====> 扫描链上记录 TASK START!!");
 		// 获取链上最新区块信息
 		try {
 			// 先从缓存获取区块信息
@@ -129,6 +130,11 @@ public class SyncBlockTask {
 			}
 			syncBlockHeight();
 			syncNumber = syncNumber.add(BigInteger.ONE);
+
+		} catch (ResourceAccessException e){
+			log.error("区块高度{}，网络异常{}", syncNumber, e.getMessage());
+		} catch (UnknownHostException e) {
+			log.error("区块高度{}，网络异常{}", syncNumber, e.getMessage());
 		} catch (Exception e) {
 			log.error("扫描区块异常，高度：{}", syncNumber);
 			log.error("扫描区块异常", e);
@@ -142,18 +148,18 @@ public class SyncBlockTask {
 			return;
 		}
 		// 更新数据库区块高度
-		//		if (block == null) {
-		//			block = new TronBlock();
-		//			block.setBlock(syncNumber.longValue());
-		//			tronBlockMapper.insert(block);
-		//		} else {
+		// if (block == null) {
+		// block = new TronBlock();
+		// block.setBlock(syncNumber.longValue());
+		// tronBlockMapper.insert(block);
+		// } else {
 		TronBlock block = new TronBlock();
 		block.setBlock(syncNumber.longValue());
 		UpdateWrapper query = new UpdateWrapper<>();
 		query.isNotNull("block");
 		tronBlockMapper.update(block, query);
 		lastSaveNumber = syncNumber;
-		//		}
+		// }
 	}
 
 	private void parseAndSyncData(JSONObject trans, String blockInfo) {

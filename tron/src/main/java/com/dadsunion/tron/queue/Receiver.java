@@ -25,7 +25,7 @@ public class Receiver {
 	private TronDelegate tronDelegate;
 
 	public void receiveMessage(String message) {
-		log.info("message接收到消息了:{}", message);
+		log.debug("message接收到消息了:{}", message);
 		TronChainRecord chain = JSON.parseObject(message, TronChainRecord.class);
 		tronDelegate.handleChainRecord(chain);
 	}

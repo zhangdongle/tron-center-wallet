@@ -45,6 +45,7 @@ public class TronCollectRecordServiceImpl extends ServiceImpl<TronCollectRecordM
         if (tronCollectRecord.getState() != null){
             lqw.eq(TronCollectRecord::getState ,tronCollectRecord.getState());
         }
+        lqw.orderByDesc(TronCollectRecord::getId);
         return this.list(lqw);
     }
 }

@@ -1,6 +1,6 @@
 [INFO] Scanning for projects...
 [WARNING] 
-[WARNING] Some problems were encountered while building the effective model for com.dadsunion:tron:jar:3.4.0
+[WARNING] Some problems were encountered while building the effective model for com.dadsunion:tron:jar:1.0.0
 [WARNING] 'dependencies.dependency.systemPath' for tron-sdk:tron-sdk:jar should not point at files within the project directory, ${basedir}/lib/tron-sdk-1.0-SNAPSHOT.jar will be unresolvable by dependent projects @ com.dadsunion:tron:[unknown-version], D:\projects\chain\trx-center-wallet\tron\pom.xml, line 24, column 25
 [WARNING] 
 [WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
@@ -21,18 +21,18 @@
 [INFO] tron-admin                                                         [jar]
 [INFO] 
 [INFO] ------------------------< com.dadsunion:ruoyi >-------------------------
-[INFO] Building ruoyi 3.4.0                                               [1/9]
+[INFO] Building ruoyi 1.0.0                                               [1/9]
 [INFO] --------------------------------[ pom ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ ruoyi ---
-[INFO] com.dadsunion:ruoyi:pom:3.4.0
+[INFO] com.dadsunion:ruoyi:pom:1.0.0
 [INFO] 
 [INFO] ---------------------< com.dadsunion:tron-common >----------------------
-[INFO] Building tron-common 3.4.0                                         [2/9]
+[INFO] Building tron-common 1.0.0                                         [2/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-common ---
-[INFO] com.dadsunion:tron-common:jar:3.4.0
+[INFO] com.dadsunion:tron-common:jar:1.0.0
 [INFO] +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO] |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO] |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -144,12 +144,12 @@
 [INFO]       \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] ---------------------< com.dadsunion:tron-system >----------------------
-[INFO] Building tron-system 3.4.0                                         [3/9]
+[INFO] Building tron-system 1.0.0                                         [3/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-system ---
-[INFO] com.dadsunion:tron-system:jar:3.4.0
-[INFO] \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] com.dadsunion:tron-system:jar:1.0.0
+[INFO] \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO]    +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -261,11 +261,11 @@
 [INFO]          \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] --------------------< com.dadsunion:tron-framework >--------------------
-[INFO] Building tron-framework 3.4.0                                      [4/9]
+[INFO] Building tron-framework 1.0.0                                      [4/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-framework ---
-[INFO] com.dadsunion:tron-framework:jar:3.4.0
+[INFO] com.dadsunion:tron-framework:jar:1.0.0
 [INFO] +- org.springframework.boot:spring-boot-starter-web:jar:2.2.13.RELEASE:compile
 [INFO] |  +- org.springframework.boot:spring-boot-starter:jar:2.2.13.RELEASE:compile
 [INFO] |  |  +- org.springframework.boot:spring-boot:jar:2.2.13.RELEASE:compile
@@ -318,8 +318,8 @@
 [INFO] +- com.github.oshi:oshi-core:jar:5.6.0:compile
 [INFO] |  +- net.java.dev.jna:jna:jar:5.7.0:compile
 [INFO] |  \- net.java.dev.jna:jna-platform:jar:5.7.0:compile
-[INFO] \- com.dadsunion:tron-system:jar:3.4.0:compile
-[INFO]    \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] \- com.dadsunion:tron-system:jar:1.0.0:compile
+[INFO]    \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO]       +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO]       +- org.springframework.boot:spring-boot-starter-security:jar:2.2.13.RELEASE:compile
 [INFO]       |  +- org.springframework.security:spring-security-config:jar:5.2.8.RELEASE:compile
@@ -407,15 +407,15 @@
 [INFO]             \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] ---------------------< com.dadsunion:tron-quartz >----------------------
-[INFO] Building tron-quartz 3.4.0                                         [5/9]
+[INFO] Building tron-quartz 1.0.0                                         [5/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-quartz ---
-[INFO] com.dadsunion:tron-quartz:jar:3.4.0
+[INFO] com.dadsunion:tron-quartz:jar:1.0.0
 [INFO] +- org.quartz-scheduler:quartz:jar:2.3.2:compile
 [INFO] |  +- com.mchange:mchange-commons-java:jar:0.2.15:compile
 [INFO] |  \- org.slf4j:slf4j-api:jar:1.7.30:compile
-[INFO] \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO]    +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -526,15 +526,15 @@
 [INFO]          \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] --------------------< com.dadsunion:tron-generator >--------------------
-[INFO] Building tron-generator 3.4.0                                      [6/9]
+[INFO] Building tron-generator 1.0.0                                      [6/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-generator ---
-[INFO] com.dadsunion:tron-generator:jar:3.4.0
+[INFO] com.dadsunion:tron-generator:jar:1.0.0
 [INFO] +- org.apache.velocity:velocity:jar:1.7:compile
 [INFO] |  +- commons-collections:commons-collections:jar:3.2.1:compile
 [INFO] |  \- commons-lang:commons-lang:jar:2.4:compile
-[INFO] \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO]    +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -645,12 +645,12 @@
 [INFO]          \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] ----------------------< com.dadsunion:tron-demo >-----------------------
-[INFO] Building tron-demo 3.4.0                                           [7/9]
+[INFO] Building tron-demo 1.0.0                                           [7/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-demo ---
-[INFO] com.dadsunion:tron-demo:jar:3.4.0
-[INFO] \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] com.dadsunion:tron-demo:jar:1.0.0
+[INFO] \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO]    +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO]    |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -762,12 +762,12 @@
 [INFO]          \- com.squareup.okio:okio:jar:1.17.2:compile
 [INFO] 
 [INFO] -------------------------< com.dadsunion:tron >-------------------------
-[INFO] Building tron 3.4.0                                                [8/9]
+[INFO] Building tron 1.0.0                                                [8/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron ---
-[INFO] com.dadsunion:tron:jar:3.4.0
-[INFO] +- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] com.dadsunion:tron:jar:1.0.0
+[INFO] +- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO] |  +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO] |  |  +- org.springframework:spring-beans:jar:5.2.12.RELEASE:compile
 [INFO] |  |  +- org.springframework:spring-context:jar:5.2.12.RELEASE:compile
@@ -880,11 +880,11 @@
 [INFO] \- tron-sdk:tron-sdk:jar:1.0-SNAPSHOT:system
 [INFO] 
 [INFO] ----------------------< com.dadsunion:tron-admin >----------------------
-[INFO] Building tron-admin 3.4.0                                          [9/9]
+[INFO] Building tron-admin 1.0.0                                          [9/9]
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ tron-admin ---
-[INFO] com.dadsunion:tron-admin:jar:3.4.0
+[INFO] com.dadsunion:tron-admin:jar:1.0.0
 [INFO] +- org.springframework.boot:spring-boot-devtools:jar:2.2.13.RELEASE:compile
 [INFO] |  +- org.springframework.boot:spring-boot:jar:2.2.13.RELEASE:compile
 [INFO] |  |  +- org.springframework:spring-core:jar:5.2.12.RELEASE:compile
@@ -912,7 +912,7 @@
 [INFO] |  \- com.fasterxml.jackson.core:jackson-annotations:jar:2.10.5:compile
 [INFO] +- io.springfox:springfox-swagger-ui:jar:2.9.2:compile
 [INFO] +- mysql:mysql-connector-java:jar:8.0.22:compile
-[INFO] +- com.dadsunion:tron-framework:jar:3.4.0:compile
+[INFO] +- com.dadsunion:tron-framework:jar:1.0.0:compile
 [INFO] |  +- org.springframework.boot:spring-boot-starter-web:jar:2.2.13.RELEASE:compile
 [INFO] |  |  +- org.springframework.boot:spring-boot-starter:jar:2.2.13.RELEASE:compile
 [INFO] |  |  |  +- org.springframework.boot:spring-boot-starter-logging:jar:2.2.13.RELEASE:compile
@@ -951,11 +951,11 @@
 [INFO] |  +- com.github.oshi:oshi-core:jar:5.6.0:compile
 [INFO] |  |  +- net.java.dev.jna:jna:jar:5.7.0:compile
 [INFO] |  |  \- net.java.dev.jna:jna-platform:jar:5.7.0:compile
-[INFO] |  \- com.dadsunion:tron-system:jar:3.4.0:compile
-[INFO] +- com.dadsunion:tron-quartz:jar:3.4.0:compile
+[INFO] |  \- com.dadsunion:tron-system:jar:1.0.0:compile
+[INFO] +- com.dadsunion:tron-quartz:jar:1.0.0:compile
 [INFO] |  +- org.quartz-scheduler:quartz:jar:2.3.2:compile
 [INFO] |  |  \- com.mchange:mchange-commons-java:jar:0.2.15:compile
-[INFO] |  \- com.dadsunion:tron-common:jar:3.4.0:compile
+[INFO] |  \- com.dadsunion:tron-common:jar:1.0.0:compile
 [INFO] |     +- org.springframework:spring-context-support:jar:5.2.12.RELEASE:compile
 [INFO] |     +- org.springframework.boot:spring-boot-starter-security:jar:2.2.13.RELEASE:compile
 [INFO] |     |  +- org.springframework.security:spring-security-config:jar:5.2.8.RELEASE:compile
@@ -1042,17 +1042,17 @@
 [INFO] |     \- io.github.openfeign:feign-okhttp:jar:11.0:compile
 [INFO] |        \- com.squareup.okhttp3:okhttp:jar:3.14.9:compile
 [INFO] |           \- com.squareup.okio:okio:jar:1.17.2:compile
-[INFO] +- com.dadsunion:tron-generator:jar:3.4.0:compile
+[INFO] +- com.dadsunion:tron-generator:jar:1.0.0:compile
 [INFO] |  \- org.apache.velocity:velocity:jar:1.7:compile
 [INFO] |     +- commons-collections:commons-collections:jar:3.2.1:compile
 [INFO] |     \- commons-lang:commons-lang:jar:2.4:compile
-[INFO] +- com.dadsunion:tron-demo:jar:3.4.0:compile
-[INFO] \- com.dadsunion:tron:jar:3.4.0:compile
+[INFO] +- com.dadsunion:tron-demo:jar:1.0.0:compile
+[INFO] \- com.dadsunion:tron:jar:1.0.0:compile
 [INFO]    \- tron-sdk:tron-sdk:jar:1.0-SNAPSHOT:system
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] 
-[INFO] ruoyi 3.4.0 ........................................ SUCCESS [  0.954 s]
+[INFO] ruoyi 1.0.0 ........................................ SUCCESS [  0.954 s]
 [INFO] tron-common ........................................ SUCCESS [  1.119 s]
 [INFO] tron-system ........................................ SUCCESS [  0.176 s]
 [INFO] tron-framework ..................................... SUCCESS [  0.451 s]
@@ -1060,7 +1060,7 @@
 [INFO] tron-generator ..................................... SUCCESS [  0.180 s]
 [INFO] tron-demo .......................................... SUCCESS [  0.168 s]
 [INFO] tron ............................................... SUCCESS [  0.165 s]
-[INFO] tron-admin 3.4.0 ................................... SUCCESS [  0.595 s]
+[INFO] tron-admin 1.0.0 ................................... SUCCESS [  0.595 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------

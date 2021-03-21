@@ -19,14 +19,15 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="是否已激活，0.未激活，1.已激活" prop="activated">
-        <el-input
-          v-model="queryParams.activated"
-          placeholder="请输入是否已激活，0.未激活，1.已激活"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="是否已激活" prop="activated">
+        <el-select v-model="queryParams.activated" placeholder="请选择是否已激活" clearable size="small">
+          <el-option
+            v-for="dict in activatedOptions"
+            :key="dict.dictValue"
+            :label="dict.dictLabel"
+            :value="dict.dictValue"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="秘钥" prop="secretkey">
         <el-input
@@ -52,9 +53,9 @@
           size="mini"
           @click="handleAdd"
           v-hasPermi="['tron:address:add']"
-        >新增</el-button>
+        >随机生成</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button
           type="success"
           plain
@@ -64,8 +65,8 @@
           @click="handleUpdate"
           v-hasPermi="['tron:address:edit']"
         >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
+      </el-col> -->
+      <!-- <el-col :span="1.5">
         <el-button
           type="danger"
           plain
@@ -74,8 +75,8 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['tron:address:remove']"
-        >删除</el-button>
-      </el-col>
+        >删除</el-button> 
+      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -91,12 +92,12 @@
 
     <el-table v-loading="loading" :data="addressList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="秘钥" align="center" prop="id" v-if="false"/>
-      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="" align="center" prop="id" v-if="false"/>
+      <el-table-column label="用户ID" align="center" prop="userId" width="200px" />
       <el-table-column label="地址" align="center" prop="address" />
-      <el-table-column label="是否已激活，0.未激活，1.已激活" align="center" prop="activated" />
-      <el-table-column label="秘钥" align="center" prop="secretkey" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <!-- <el-table-column label="是否已激活" align="center" prop="activated" :formatter="activatedFormat" /> -->
+      <el-table-column label="秘钥" align="center" prop="secretkey" width="600px" />
+      <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -113,7 +114,7 @@
             v-hasPermi="['tron:address:remove']"
           >删除</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
     </el-table>
     
     <pagination
@@ -125,31 +126,28 @@
     />
 
     <!-- 添加或修改地址管理对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+          <el-input v-model="form.userId" disabled placeholder="请输入用户ID" />
         </el-form-item>
-        <el-form-item label="地址" prop="address">
-          <el-input v-model="form.address" placeholder="请输入地址" />
+        <el-form-item label="request" prop="address">
+          <el-input type="textarea" rows="5" disabled v-model="request" placeholder="" />
         </el-form-item>
-        <el-form-item label="是否已激活，0.未激活，1.已激活" prop="activated">
-          <el-input v-model="form.activated" placeholder="请输入是否已激活，0.未激活，1.已激活" />
-        </el-form-item>
-        <el-form-item label="秘钥" prop="secretkey">
-          <el-input v-model="form.secretkey" placeholder="请输入秘钥" />
+        <el-form-item label="response" prop="secretkey">
+          <el-input type="textarea"  rows="5" disabled v-model="response" placeholder="" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="submitForm">生成</el-button>
+        <el-button @click="cancel">关闭</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { listAddress, getAddress, delAddress, addAddress, updateAddress, exportAddress } from "@/api/tron/address";
+import { listAddress, getAddress, delAddress, addAddress, updateAddress, exportAddress, genAddress } from "@/api/tron/address";
 
 export default {
   name: "Address",
@@ -157,6 +155,8 @@ export default {
   },
   data() {
     return {
+      request:"",
+      response:"",
       // 遮罩层
       loading: true,
       // 选中数组
@@ -175,6 +175,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 是否已激活字典
+      activatedOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -190,24 +192,24 @@ export default {
       rules: {
         userId: [
           { required: true, message: "用户ID不能为空", trigger: "blur" }
-        ],
-        address: [
-          { required: true, message: "地址不能为空", trigger: "blur" }
-        ],
-        activated: [
-          { required: true, message: "是否已激活，0.未激活，1.已激活不能为空", trigger: "blur" }
-        ],
-        secretkey: [
-          { required: true, message: "秘钥不能为空", trigger: "blur" }
-        ],
-        createTime: [
-          { required: true, message: "秘钥不能为空", trigger: "blur" }
-        ],
+        ]
+        // address: [
+        //   { required: true, message: "地址不能为空", trigger: "blur" }
+        // ],
+        // activated: [
+        //   { required: true, message: "是否已激活不能为空", trigger: "change" }
+        // ],
+        // secretkey: [
+        //   { required: true, message: "秘钥不能为空", trigger: "blur" }
+        // ],
       }
     };
   },
   created() {
     this.getList();
+    this.getDicts("sys_yes_no").then(response => {
+      this.activatedOptions = response.data;
+    });
   },
   methods: {
     /** 查询地址管理列表 */
@@ -218,6 +220,10 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
+    },
+    // 是否已激活字典翻译
+    activatedFormat(row, column) {
+      return this.selectDictLabel(this.activatedOptions, row.activated);
     },
     // 取消按钮
     cancel() {
@@ -257,6 +263,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
+      this.form.userId = ""+new Date().getTime();
       this.title = "添加地址管理";
     },
     /** 修改按钮操作 */
@@ -280,11 +287,22 @@ export default {
               this.getList();
             });
           } else {
-            addAddress(this.form).then(response => {
-              this.msgSuccess("新增成功");
-              this.open = false;
+            genAddress({
+              userId: this.form.userId
+            }).then(response => {
+              this.response = JSON.stringify(response);
+              var json = {
+                "userId":this.form.userId
+              }
+              this.request = JSON.stringify(json);
+              this.msgSuccess("生成完毕");
               this.getList();
             });
+            // addAddress(this.form).then(response => {
+            //   this.msgSuccess("新增成功");
+            //   this.open = false;
+            //   this.getList();
+            // });
           }
         }
       });
