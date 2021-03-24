@@ -13,8 +13,8 @@ import com.dadsunion.tron.dto.WithdrawDto;
 import com.dadsunion.tron.service.ITronAddressService;
 import com.dadsunion.tron.service.ITronWithdrawRecordService;
 import com.dadsunion.tron.utils.IpUtil;
-import com.dadsunion.web.dto.CreateAddressDto;
-import com.dadsunion.web.vo.CreateAddressVo;
+import com.dadsunion.tron.dto.CreateAddressDto;
+import com.dadsunion.tron.vo.CreateAddressVo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

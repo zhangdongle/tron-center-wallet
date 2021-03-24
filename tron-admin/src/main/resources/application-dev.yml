@@ -80,4 +80,4 @@ spring:
 system:
   white-ip: 
   notify:
-    url: http://127.0.0.1:8888/api/notify
+    url: http://127.0.0.1:8080/api/notify

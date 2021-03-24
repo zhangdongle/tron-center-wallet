@@ -14,6 +14,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.dadsunion.common.utils.spring.SpringUtils;
 import com.dadsunion.tron.config.RedisService;
 import com.dadsunion.tron.constants.ChainType;
 import com.dadsunion.tron.constants.SysConstant;
@@ -42,12 +43,12 @@ public class SyncBlockTask {
 	}
 
 	private BigInteger startSync = null;
-	private BigInteger syncNumber = new BigInteger("14348734"); // 区块起始高度，如果数据库没有保存，以此值为默认值
+	private static BigInteger syncNumber = new BigInteger("14348734"); // 区块起始高度，如果数据库没有保存，以此值为默认值
 	private final BigInteger maxSyncCount = new BigInteger("50");
-	private BigInteger lastSaveNumber = syncNumber;
+	private static BigInteger lastSaveNumber = syncNumber;
 	private final BigInteger minCount = new BigInteger("20");
 	private final BigInteger buffer = new BigInteger("5");
-	private BigInteger lastBlockHeight = syncNumber;
+	private static BigInteger lastBlockHeight = syncNumber;
 	public static Integer status = 1; // 开关，0.关闭，1.打开
 	public static final Map<BigInteger, String> NEW_BLOCKCACHE = new HashMap<>();
 
@@ -57,15 +58,40 @@ public class SyncBlockTask {
 	@Autowired
 	private RedisService redisService;
 
+	/**
+	 * 获取当前区块高度
+	 * @return
+	 */
+	public static BigInteger getSyncNumber() {
+		// 获取当前区块同步高度
+		return syncNumber;
+	}
+
+	/**
+	 * 获取最新区块高度
+	 * @return
+	 */
+	public static BigInteger getlastBlockHeight() {
+		return lastBlockHeight;
+	}
+
 	public static void start() {
+		TronBlockMapper tronBlockMapper = SpringUtils.getBean(TronBlockMapper.class);
+		TronBlock block = tronBlockMapper.selectOne(new QueryWrapper<>());
 		synchronized (status) {
 			status = 1;
+			// 获取系统当前区块高度
+			if (block != null) {
+				syncNumber = new BigInteger(block.getBlock().toString());
+			}
+			log.info("区块扫描启动");
 		}
 	}
 
 	public static void stop() {
 		synchronized (status) {
 			status = 0;
+			log.info("区块扫描暂停");
 		}
 	}
 
@@ -131,7 +157,7 @@ public class SyncBlockTask {
 			syncBlockHeight();
 			syncNumber = syncNumber.add(BigInteger.ONE);
 
-		} catch (ResourceAccessException e){
+		} catch (ResourceAccessException e) {
 			log.error("区块高度{}，网络异常{}", syncNumber, e.getMessage());
 		} catch (UnknownHostException e) {
 			log.error("区块高度{}，网络异常{}", syncNumber, e.getMessage());

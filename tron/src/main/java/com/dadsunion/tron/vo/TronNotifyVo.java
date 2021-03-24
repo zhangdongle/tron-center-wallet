@@ -21,9 +21,9 @@ public class TronNotifyVo {
 
 	private BigDecimal trxFee; // 消耗的trx
 
-	private long sendTime; // 发起时间
+	private Long sendTime; // 发起时间
 
-	private long chainTime; // 链上记录的时间
+	private Long chainTime; // 链上记录的时间
 
 	private String message; // 描述信息
 

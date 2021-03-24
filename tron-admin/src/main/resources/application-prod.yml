@@ -6,9 +6,9 @@ spring:
         druid:
             # 主库数据源
             master:
-                url: jdbc:mysql://localhost:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true
-                username: root
-                password: root
+                url: jdbc:mysql://localhost:3306/tron_wallet?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true
+                username: tron_wallet
+                password: 74LWhAkLAwK2Dcem
             # 从库数据源
             slave:
                 # 从数据源开关/默认关闭
@@ -77,3 +77,7 @@ spring:
                 max-active: 8
                 # #连接池最大阻塞等待时间（使用负值表示没有限制）
                 max-wait: -1ms
+system:
+  white-ip:
+  notify:
+    url: http://127.0.0.1:8080/api/notify

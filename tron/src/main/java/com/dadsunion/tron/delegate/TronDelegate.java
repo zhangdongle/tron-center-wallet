@@ -69,7 +69,7 @@ public class TronDelegate {
 
 	/**
 	 * 归集
-	 * 
+	 *
 	 * @param tcr 不开启事务，可能已经归集成功但是保存异常，回滚会丢失信息
 	 */
 	// @Transactional(rollbackFor = Exception.class)
@@ -126,6 +126,20 @@ public class TronDelegate {
 		}
 	}
 
+	public boolean reCollect(TronCollectRecord tcr){
+
+		// 查询链上状态，如果不是错误，不能操作
+		TronChainRecord chain = chainRecordMapper.selectById(tcr.getCollectChainId());
+		if (ChainState.FAIL != chain.getState()) {
+			log.error("当前状态不可操作");
+			return false;
+		}
+
+		// copy chain 信息，重新打包
+		collect(tcr);
+		return true;
+	}
+
 	public TransactionResult transfer(String fromSecretKey, String to, TronCoinType coinType, BigDecimal amount)
 			throws Exception {
 		TransactionResult result = null;
@@ -143,6 +157,21 @@ public class TronDelegate {
 			log.error("未知的交易类型，type:{}", coinType.getType());
 		}
 		return result;
+	}
+
+	public boolean reWithdraw(TronWithdrawRecord twr) {
+
+		// 查询链上状态，如果不是错误，不能操作
+		TronChainRecord chain = chainRecordMapper.selectById(twr.getChainId());
+		if (ChainState.FAIL != chain.getState()) {
+			log.error("当前状态不可操作");
+			return false;
+		}
+
+		// copy chain 信息，重新打包
+		withdrawOnChain(twr);
+
+		return true;
 	}
 
 	/**
@@ -393,7 +422,7 @@ public class TronDelegate {
 
 	/**
 	 * 根据类型获取系统地址
-	 * 
+	 *
 	 * @param type cold，冷钱包地址，withdraw，提币地址，consume，消耗地址
 	 * @return
 	 */
@@ -406,7 +435,7 @@ public class TronDelegate {
 
 	/**
 	 * 根据币种符号查询币种信息，币种符号唯一
-	 * 
+	 *
 	 * @param symbol
 	 * @return
 	 */
@@ -427,6 +456,7 @@ public class TronDelegate {
 		if (twr.getState() != WithdrawState.WAITING) {
 			return;
 		}
+
 		TronSystemAddress systemAddr = getSystemAddress("withdraw");
 		TronCoinType coinType = COIN_SYMBOL.get(twr.getSymbol());
 		BigInteger amount = convert(twr.getSymbol(), twr.getAmount());
@@ -519,7 +549,7 @@ public class TronDelegate {
 
 	/**
 	 * 创建钱包地址
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 */
