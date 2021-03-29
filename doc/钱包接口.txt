@@ -1,0 +1,33 @@
+1.获取用户地址
+http://47.242.233.129/prod-api/api/tron/address
+body:
+{"userId": "{{$timestamp}}"}  // 用户ID，唯一标识，防止多次创建
+
+response:
+{
+    "code": 0,
+    "data": {
+        "address": "TPmeacZkfqewyNUSHLuT3unPy79tnwZuEt",  // 生成的地址
+        "activated": false  								// 是否激活，暂时没用
+    },
+    "msg": "执行成功"
+}
+
+2.提币
+http://47.242.233.129/prod-api/api/tron/withdraw
+body:
+{
+    "userId":1616339582,									// 用户ID，和fromAddress 要一直，校验用，防止越权操作
+    "requestNo":"{{$timestamp}}",							// 请求编号，唯一标识，防止重复提交
+    "fromAddress":"TAiaPVEspiJqAmCZSjjNuoD6B3u5mjotc3",		// 发送地址
+    "toAddress":"TKx3pi2e9YHdcngyuNR47bDua3Fx7AwRop",		// 目标地址，提笔地址
+    "amount":"2",											// 金额，带小数位，
+    "symbol":"trx"											// 代币符号
+}
+
+response:
+{
+    "code": 0,
+    "data": null,
+    "msg": "执行成功"
+}
