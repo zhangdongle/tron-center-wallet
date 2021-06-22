@@ -107,7 +107,7 @@ public class TronCollectRecordController extends BaseController {
 	 */
 	@PreAuthorize("@ss.hasPermi('tron:collect:edit')")
 	@Log(title = "归集记录", businessType = BusinessType.UPDATE)
-	@PutMapping
+	@PutMapping("reCollect")
 	public AjaxResult reCollect(@RequestBody TronCollectRecord tronCollectRecord) {
 		TronCollectRecord tcr = iTronCollectRecordService.getById(tronCollectRecord.getId());
 		if (tcr.getState() != CollectState.FAILURE) {

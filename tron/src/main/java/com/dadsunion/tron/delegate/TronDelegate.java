@@ -1,35 +1,60 @@
 package com.dadsunion.tron.delegate;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.dadsunion.common.utils.StringUtils;
-import com.dadsunion.common.utils.http.HttpUtils;
-import com.dadsunion.tron.constants.*;
-import com.dadsunion.tron.domain.*;
-import com.dadsunion.tron.dto.WithdrawDto;
-import com.dadsunion.tron.mapper.*;
-import com.dadsunion.tron.vo.TronNotifyVo;
-import com.sunlight.tronsdk.TrxQuery;
-import com.sunlight.tronsdk.address.Address;
-import com.sunlight.tronsdk.address.AddressHelper;
-
-import com.sunlight.tronsdk.transaction.TransactionResult;
-import com.sunlight.tronsdk.trc20.Trc20Helper;
-import com.sunlight.tronsdk.trx.TrxHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.dadsunion.common.utils.StringUtils;
+import com.dadsunion.common.utils.http.HttpUtils;
+import com.dadsunion.tron.constants.ChainState;
+import com.dadsunion.tron.constants.ChainType;
+import com.dadsunion.tron.constants.CollectState;
+import com.dadsunion.tron.constants.ConsumeType;
+import com.dadsunion.tron.constants.NotifyState;
+import com.dadsunion.tron.constants.RechargeState;
+import com.dadsunion.tron.constants.SystemAddressType;
+import com.dadsunion.tron.constants.WithdrawState;
+import com.dadsunion.tron.domain.TronAddress;
+import com.dadsunion.tron.domain.TronChainRecord;
+import com.dadsunion.tron.domain.TronCoinType;
+import com.dadsunion.tron.domain.TronCollectRecord;
+import com.dadsunion.tron.domain.TronConsumeRecord;
+import com.dadsunion.tron.domain.TronRechargeRecord;
+import com.dadsunion.tron.domain.TronSystemAddress;
+import com.dadsunion.tron.domain.TronWithdrawRecord;
+import com.dadsunion.tron.dto.WithdrawDto;
+import com.dadsunion.tron.mapper.TronAddressMapper;
+import com.dadsunion.tron.mapper.TronChainRecordMapper;
+import com.dadsunion.tron.mapper.TronCoinTypeMapper;
+import com.dadsunion.tron.mapper.TronCollectRecordMapper;
+import com.dadsunion.tron.mapper.TronConsumeRecordMapper;
+import com.dadsunion.tron.mapper.TronRechargeRecordMapper;
+import com.dadsunion.tron.mapper.TronSystemAddressMapper;
+import com.dadsunion.tron.mapper.TronWithdrawRecordMapper;
+import com.dadsunion.tron.vo.TronNotifyVo;
+import com.sunlight.tronsdk.TrxQuery;
+import com.sunlight.tronsdk.address.Address;
+import com.sunlight.tronsdk.address.AddressHelper;
+import com.sunlight.tronsdk.transaction.TransactionResult;
+import com.sunlight.tronsdk.trc10.Trc10Helper;
+import com.sunlight.tronsdk.trc20.Trc20Helper;
+import com.sunlight.tronsdk.trx.TrxHelper;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -48,6 +73,8 @@ public class TronDelegate {
 	private TronWithdrawRecordMapper withdrawRecordMapper;
 	@Autowired
 	private TronCollectRecordMapper collectRecordMapper;
+	@Autowired
+	private TronConsumeRecordMapper consumeRecordMapper;
 
 	@Value("${system.notify.url}")
 	private String notifyUrl;
@@ -99,7 +126,7 @@ public class TronDelegate {
 			log.info("归集发起,from:{},to:{},amount:{}", to, coldAddress.getAddress(), amount);
 			TransactionResult result = transfer(tronAddress.getSecretkey(), coldAddress.getAddress(), coinType,
 					tcr.getAmount());
-
+			log.info("归集返回,from:{},to:{},result:{}", to, coldAddress.getAddress(), result);
 			if (result.getResult()) {
 				// 链上插入一条执行记录
 				chainRecord.setState(ChainState.SENT);
@@ -110,7 +137,7 @@ public class TronDelegate {
 				chainRecord.setErrMsg(result.getMessage());
 			}
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			log.error("归集异常", e);
 			// 修改提现记录为失败
 			// 记录链上数据，并排查
@@ -126,7 +153,7 @@ public class TronDelegate {
 		}
 	}
 
-	public boolean reCollect(TronCollectRecord tcr){
+	public boolean reCollect(TronCollectRecord tcr) {
 
 		// 查询链上状态，如果不是错误，不能操作
 		TronChainRecord chain = chainRecordMapper.selectById(tcr.getCollectChainId());
@@ -148,11 +175,11 @@ public class TronDelegate {
 			result = TrxHelper.transfer(fromSecretKey, to, amount);
 			log.info("普通转账->请求结果：{}", result);
 		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC10) {
-			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 1000000l);
+			result = Trc10Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 1000000);
 			log.info("TRC10转账->请求结果：{}", JSON.toJSONString(result));
 		} else if (coinType.getType() == ChainType.CHAINTYPE_TRC20) {
 			result = Trc20Helper.transfer(fromSecretKey, to, amount, coinType.getContractAddr(), 1000000l);
-			log.info("TRC20转账->请求结果", JSON.toJSONString(result));
+			log.info("TRC20转账->请求结果:{}", JSON.toJSONString(result));
 		} else {
 			log.error("未知的交易类型，type:{}", coinType.getType());
 		}
@@ -266,26 +293,34 @@ public class TronDelegate {
 					log.debug("该记录已经处理过：{}", chain.getHash());
 					return;
 				}
-
-				// 如果存在一条记录，查看该记录是否是提币记录
 				// 看该记录是否已经处理成功
 				chain.setId(tcr.getId());
-				if (ChainState.SENT == tcr.getState()) {
-					// 已发送代表是提币记录
-					// 判断该提币记录是否提到的是本系统其他地址，如果是的话，需要添加一条充值记录
-					TronAddress ta = getAddress(chain.getToAddr());
-					if (ta != null) {
-						handleRechargeState(chain);
-						handleWithdrawState(tcr, chain);
+				// 如果存在一条记录，查看该记录是否是提币记录
+				if (ChainType.TYPE_WITHDRAW == tcr.getType()) {
+					if (ChainState.SENT == tcr.getState()) {
+						// 已发送代表是提币记录
+						// 判断该提币记录是否提到的是本系统其他地址，如果是的话，需要添加一条充值记录
+						TronAddress ta = getAddress(tcr.getToAddr());
+						if (ta != null) {
+							handleRechargeState(chain);
+							handleWithdrawState(tcr, chain);
+						} else {
+							// 判断是归集业务还是提币业务
+							handleWithdrawState(tcr, chain);
+						}
 					} else {
-						// 判断是归集业务还是提币业务
-						handleOtherState(tcr, chain);
+						// 如果是充值记录
+						// 则表示已经处理过来，充值记录如果不是内部转账，则只有一条记录
+						return;
 					}
-				} else {
-					// 如果是充值记录
-					// 则表示已经处理过来，充值记录如果不是内部转账，则只有一条记录
-					return;
+				} else if (ChainType.TYPE_COLLECT == tcr.getType()) {
+
+					// 判断是归集业务
+					handleCollectState(tcr, chain);
+				} else if (ChainType.TYPE_CONSUME == tcr.getType()) {
+					handleConsumeState(tcr, chain);
 				}
+
 			}
 		} else {
 
@@ -295,8 +330,85 @@ public class TronDelegate {
 				log.debug("不是平台钱包地址：{}", chain.getToAddr());
 				return;
 			}
+			// 如果该地址还未激活，则加入到激活任务中
+			if (address.getActivated() == 0) {
+				// 如果充值进来的为主币trx，则地址默认为激活状态
+				if ("trx".equals(chain.getSymbol())) {
+					handleActivateState(address.getAddress());
+				} else {
+					addActivate(address.getAddress());
+				}
+			}
 			// 如果系统不存在记录，则表示该笔交易为充值
 			handleRechargeState(chain);
+		}
+	}
+
+	public void addActivate(String address) {
+		// 查询是否存在激活记录
+		// 如果已存在，则跳过，防止重复激活
+		LambdaQueryWrapper<TronConsumeRecord> query = new LambdaQueryWrapper<>();
+		query.eq(TronConsumeRecord::getToAddr, address);
+		query.eq(TronConsumeRecord::getType, ConsumeType.ACTIVATE);
+		TronConsumeRecord tcr = consumeRecordMapper.selectOne(query);
+		if (tcr != null) {
+			return;
+		}
+		TronSystemAddress tsa = getSystemAddress(SystemAddressType.CONSUME);
+		tcr = new TronConsumeRecord();
+		tcr.setCount(BigDecimal.ONE);
+		tcr.setFromAddr(tsa.getAddress());
+		tcr.setToAddr(address);
+		tcr.setType(ConsumeType.ACTIVATE);
+		tcr.setState(0); // 处理中
+		consumeRecordMapper.insert(tcr);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void activate(TronConsumeRecord tcr) {
+		TronSystemAddress systemAddr = getSystemAddress("consume");
+		TronCoinType coinType = COIN_SYMBOL.get("trx"); // 只有主币激活
+		BigInteger amount = convert("trx", tcr.getCount());
+
+		TronChainRecord chainRecord = new TronChainRecord();
+		chainRecord.setFromAddr(systemAddr.getAddress());
+		chainRecord.setToAddr(tcr.getToAddr());
+		chainRecord.setRelatedId(tcr.getId());
+		chainRecord.setAmount(amount);
+		chainRecord.setContractAddr(coinType.getContractAddr());
+		chainRecord.setSymbol(coinType.getSymbol());
+		chainRecord.setRemark("账户激活");
+		chainRecord.setType(ChainType.TYPE_CONSUME);
+		chainRecord.setChainType(coinType.getType());
+
+		try {
+			log.info("激活发起,from:{},to:{},amount:{}", systemAddr.getAddress(), tcr.getToAddr(), tcr.getCount());
+			TransactionResult result = transfer(systemAddr.getPrivateKey(), tcr.getToAddr(), coinType, tcr.getCount());
+			log.info("激活返回,from:{},to:{},result:{}", systemAddr.getAddress(), tcr.getToAddr(), result);
+			// 如果发起成功，则修改状态为处理中
+			if (result.getResult()) {
+				// 修改提现状态
+				// 链上插入一条执行记录
+				chainRecord.setState(ChainState.SENT);
+				chainRecord.setHash(result.getHash());
+				tcr.setState(1);
+			} else {
+				// 链上插入一条执行记录
+				chainRecord.setState(ChainState.FAIL);
+				chainRecord.setErrMsg(result.getMessage());
+				log.error("转账请求失败：{}", result.getMessage());
+			}
+		} catch (Exception e) {
+			// 参数异常，则修改提现表状态
+			log.error("激活异常", e);
+			chainRecord.setState(ChainState.FAIL);
+			chainRecord.setErrMsg("未知异常，" + e.getMessage());
+			// 记录链上数据，并排查
+			// 链上插入一条执行记录
+		} finally {
+			chainRecordMapper.insert(chainRecord);
+			tcr.setChainId(chainRecord.getId());
+			consumeRecordMapper.updateById(tcr);
 		}
 	}
 
@@ -311,13 +423,44 @@ public class TronDelegate {
 		return new BigDecimal(amount).movePointLeft(coinType.getScale());
 	}
 
+	// @Transactional(rollbackFor = Exception.class)
+	// public void handleOtherState(TronChainRecord old, TronChainRecord chain) {
+	// if (ChainType.TYPE_WITHDRAW == old.getType()) {
+	// handleWithdrawState(old, chain);
+	// } else if (ChainType.TYPE_COLLECT == old.getType()) {
+	// handleCollectState(old, chain);
+	// } else if (ChainType.TYPE_CONSUME == old.getType()) {
+	// handleConsumeState(old, chain);
+	// }
+	// }
+
 	@Transactional(rollbackFor = Exception.class)
-	public void handleOtherState(TronChainRecord old, TronChainRecord chain) {
-		if (ChainType.TYPE_WITHDRAW == old.getType()) {
-			handleWithdrawState(old, chain);
-		} else if (ChainType.TYPE_COLLECT == old.getType()) {
-			handleCollectState(old, chain);
-		}
+	public void handleConsumeState(TronChainRecord old, TronChainRecord chain) {
+		// 修改链上状态
+		old.setState(ChainState.SUCCESS);
+		old.setHeight(chain.getHeight());
+		old.setBlockInfo(chain.getBlockInfo());
+		chainRecordMapper.updateById(old);
+
+		// 修改消耗状态
+		TronConsumeRecord tcr = new TronConsumeRecord();
+		tcr.setState(2);
+		tcr.setId(old.getRelatedId());
+		consumeRecordMapper.updateById(tcr);
+
+		// 消耗类型当前认定只有激活状态
+		// 如果还有其他类型，这里要判断消耗类型，再处理后续事务
+		handleActivateState(old.getToAddr());
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void handleActivateState(String address) {
+		// 设置地址状态为已激活
+		TronAddress ta = new TronAddress();
+		ta.setActivated(1);
+		LambdaQueryWrapper<TronAddress> query = new LambdaQueryWrapper<>();
+		query.eq(TronAddress::getAddress, address);
+		addressMapper.update(ta, query);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -357,6 +500,7 @@ public class TronDelegate {
 		collect.setState(CollectState.PENDING);
 		collect.setRechargeId(recharge.getId());
 		collectRecordMapper.insert(collect);
+
 	}
 
 	@Transactional(rollbackFor = Exception.class)

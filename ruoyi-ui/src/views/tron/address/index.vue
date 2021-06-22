@@ -95,7 +95,7 @@
       <el-table-column label="" align="center" prop="id" v-if="false"/>
       <el-table-column label="用户ID" align="center" prop="userId" width="200px" />
       <el-table-column label="地址" align="center" prop="address" />
-      <!-- <el-table-column label="是否已激活" align="center" prop="activated" :formatter="activatedFormat" /> -->
+      <el-table-column label="是否已激活" align="center" prop="activated" :formatter="activatedFormat" />
       <el-table-column label="秘钥" align="center" prop="secretkey" width="600px" />
       <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">

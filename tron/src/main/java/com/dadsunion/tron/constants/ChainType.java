@@ -8,6 +8,7 @@ public class ChainType {
 	public static final int TYPE_RECHARGE = 1; // 充值
 	public static final int TYPE_WITHDRAW = 2; // 提现
 	public static final int TYPE_COLLECT = 3; // 归集
+	public static final int TYPE_CONSUME = 4; // 消耗
 
 	public static final int CHAINTYPE_TRANSFER = 1;
 	public static final int CHAINTYPE_TRC10 = 2;

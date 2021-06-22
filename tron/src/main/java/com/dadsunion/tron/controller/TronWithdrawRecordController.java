@@ -107,7 +107,7 @@ public class TronWithdrawRecordController extends BaseController {
 	 */
 	@PreAuthorize("@ss.hasPermi('tron:withdraw:edit')")
 	@Log(title = "重新发起提现", businessType = BusinessType.UPDATE)
-	@PutMapping
+	@PutMapping("again")
 	public AjaxResult again(@RequestBody TronWithdrawRecord tronWithdrawRecord) {
 		TronWithdrawRecord twr = iTronWithdrawRecordService.getById(tronWithdrawRecord.getId());
 		// 查询提现状态

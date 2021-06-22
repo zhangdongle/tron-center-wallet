@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -23,10 +22,11 @@ import com.dadsunion.tron.domain.TronBlock;
 import com.dadsunion.tron.domain.TronChainRecord;
 import com.dadsunion.tron.domain.TronCoinType;
 import com.dadsunion.tron.mapper.TronBlockMapper;
-import com.dadsunion.tron.utils.TransformUtil;
 import com.sunlight.tronsdk.SdkConfig;
 import com.sunlight.tronsdk.TrxQuery;
 import com.sunlight.tronsdk.address.AddressHelper;
+import com.sunlight.tronsdk.trc20.decode.TransferMessage;
+import com.sunlight.tronsdk.trc20.decode.Trc20DataDecoder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,6 +60,7 @@ public class SyncBlockTask {
 
 	/**
 	 * 获取当前区块高度
+	 * 
 	 * @return
 	 */
 	public static BigInteger getSyncNumber() {
@@ -69,6 +70,7 @@ public class SyncBlockTask {
 
 	/**
 	 * 获取最新区块高度
+	 * 
 	 * @return
 	 */
 	public static BigInteger getlastBlockHeight() {
@@ -148,11 +150,12 @@ public class SyncBlockTask {
 			JSONObject js = JSON.parseObject(str);
 			JSONArray transactions = js.getJSONArray("transactions");
 			if (transactions == null) {
-				return;
-			}
-			for (int i = 0; i < transactions.size(); i++) {
-				JSONObject trans = transactions.getJSONObject(i);
-				parseAndSyncData(trans, trans.toJSONString());
+				log.error("未找到交易信息，区块高度{}，详情：{}", syncNumber, str);
+			} else {
+				for (int i = 0; i < transactions.size(); i++) {
+					JSONObject trans = transactions.getJSONObject(i);
+					parseAndSyncData(trans, trans.toJSONString());
+				}
 			}
 			syncBlockHeight();
 			syncNumber = syncNumber.add(BigInteger.ONE);
@@ -181,7 +184,7 @@ public class SyncBlockTask {
 		// } else {
 		TronBlock block = new TronBlock();
 		block.setBlock(syncNumber.longValue());
-		UpdateWrapper query = new UpdateWrapper<>();
+		UpdateWrapper<TronBlock> query = new UpdateWrapper<>();
 		query.isNotNull("block");
 		tronBlockMapper.update(block, query);
 		lastSaveNumber = syncNumber;
@@ -214,22 +217,32 @@ public class SyncBlockTask {
 			amount = value.getBigInteger("amount");
 			to = value.getString("to_address");
 			chainType = ChainType.CHAINTYPE_TRANSFER;
+			// 转换地址编码
+			to = AddressHelper.addressHexToBase58(to);
 		} else if (ChainType.CHAINTYPE_TRC20_STR.equals(type)) {
 			// tron代币
 			String data = value.getString("data");
-			String dataStr = data.substring(8);
-			List<String> strList = TransformUtil.getStrList(dataStr, 64);
-			if (strList.size() != 2) {
+			try {
+				TransferMessage bo = Trc20DataDecoder.decode(data);
+				to = bo.getTo();
+				amount = bo.getValue();
+			} catch (Exception e) {
+				log.error("TRC20转换异常", e);
 				return;
 			}
-			to = TransformUtil.delZeroForNum(strList.get(0));
-			if (!to.startsWith("41")) {
-				to = "41" + to;
-			}
-			String amountStr = TransformUtil.delZeroForNum(strList.get(1));
-			if (amountStr.length() > 0) {
-				amount = new BigInteger(amountStr, 16);
-			}
+			// String dataStr = data.substring(8);
+			// List<String> strList = TransformUtil.getStrList(dataStr, 64);
+			// if (strList.size() != 2) {
+			// return;
+			// }
+			// to = TransformUtil.delZeroForNum(strList.get(0));
+			// if (!to.startsWith("41")) {
+			// to = "41" + to;
+			// }
+			// String amountStr = TransformUtil.delZeroForNum(strList.get(1));
+			// if (amountStr.length() > 0) {
+			// amount = new BigInteger(amountStr, 16);
+			// }
 			contractAddr = value.getString("contract_address");
 			contractAddr = AddressHelper.addressHexToBase58(contractAddr);
 			chainType = ChainType.CHAINTYPE_TRC20;
@@ -239,16 +252,14 @@ public class SyncBlockTask {
 			to = value.getString("to_address");
 			contractAddr = value.getString("asset_name");
 			chainType = ChainType.CHAINTYPE_TRC10;
+			// 转换地址编码
+			to = AddressHelper.addressHexToBase58(to);
 		} else {
 			log.error("未知交易类型，hash: {}", hash);
 			log.error("区块高度：{}，详情：{}", syncNumber, blockInfo);
 			return;
 		}
-
-		// 转换地址编码
-		to = AddressHelper.addressHexToBase58(to);
 		from = AddressHelper.addressHexToBase58(from);
-
 		Map<String, TronCoinType> COIN_TYPES = TronDelegate.COIN_CONTRACT;
 		if (!COIN_TYPES.containsKey(contractAddr)) {
 			log.debug("当前合约不需要监听，{}", contractAddr);

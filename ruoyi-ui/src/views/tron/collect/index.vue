@@ -1,68 +1,74 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="充值记录ID" prop="rechargeId">
-        <el-input
-          v-model="queryParams.rechargeId"
-          placeholder="请输入充值记录ID"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="充值链上ID" prop="rechargeChainId">
-        <el-input
-          v-model="queryParams.rechargeChainId"
-          placeholder="请输入充值链上ID"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="归集ID" prop="collectChainId">
-        <el-input
-          v-model="queryParams.collectChainId"
-          placeholder="请输入归集ID"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="归集ID" prop="amount">
+      <el-form-item label="金额" prop="amount">
         <el-input
           v-model="queryParams.amount"
-          placeholder="请输入归集ID"
+          placeholder="请输入金额"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="来源地址，用户平台地址" prop="from">
+      <el-form-item label="币种" prop="symbol">
         <el-input
-          v-model="queryParams.from"
-          placeholder="请输入来源地址，用户平台地址"
+          v-model="queryParams.symbol"
+          placeholder="请输入币种"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="目标地址" prop="to">
+      <el-form-item label="来源地址" prop="fromAddr">
         <el-input
-          v-model="queryParams.to"
+          v-model="queryParams.fromAddr"
+          placeholder="请输入来源地址"
+          clearable
+          size="small"
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="状态" prop="state">
+        <el-input
+          v-model="queryParams.state"
+          placeholder="请输入状态"
+          clearable
+          size="small"
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="目标地址" prop="toAddr">
+        <el-input
+          v-model="queryParams.toAddr"
           placeholder="请输入目标地址"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="状态：0.待归集，1.归集中，2.归集完成，3.归集失败" prop="state">
-        <el-input
-          v-model="queryParams.state"
-          placeholder="请输入状态：0.待归集，1.归集中，2.归集完成，3.归集失败"
-          clearable
+      <el-form-item label="创建时间">
+        <el-date-picker
+          v-model="daterangeCreateTime"
           size="small"
-          @keyup.enter.native="handleQuery"
-        />
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item label="修改时间">
+        <el-date-picker
+          v-model="daterangeUpdateTime"
+          size="small"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -118,14 +124,22 @@
 
     <el-table v-loading="loading" :data="collectList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="状态：0.待归集，1.归集中，2.归集完成，3.归集失败" align="center" prop="id" v-if="false"/>
-      <el-table-column label="充值记录ID" align="center" prop="rechargeId" />
-      <el-table-column label="充值链上ID" align="center" prop="rechargeChainId" />
-      <el-table-column label="归集ID" align="center" prop="collectChainId" />
-      <el-table-column label="归集ID" align="center" prop="amount" />
-      <el-table-column label="来源地址，用户平台地址" align="center" prop="from" />
-      <el-table-column label="目标地址" align="center" prop="to" />
-      <el-table-column label="状态：0.待归集，1.归集中，2.归集完成，3.归集失败" align="center" prop="state" />
+      <el-table-column label="ID" align="center" prop="id" v-if="false"/>
+      <el-table-column label="金额" align="center" prop="amount" />
+      <el-table-column label="币种" align="center" prop="symbol" />
+      <el-table-column label="来源地址" align="center" prop="fromAddr" />
+      <el-table-column label="状态" align="center" prop="state" :formatter="stateFormat" />
+      <el-table-column label="目标地址" align="center" prop="toAddr" />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="修改时间" align="center" prop="updateTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -157,27 +171,6 @@
     <!-- 添加或修改归集记录对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="充值记录ID" prop="rechargeId">
-          <el-input v-model="form.rechargeId" placeholder="请输入充值记录ID" />
-        </el-form-item>
-        <el-form-item label="充值链上ID" prop="rechargeChainId">
-          <el-input v-model="form.rechargeChainId" placeholder="请输入充值链上ID" />
-        </el-form-item>
-        <el-form-item label="归集ID" prop="collectChainId">
-          <el-input v-model="form.collectChainId" placeholder="请输入归集ID" />
-        </el-form-item>
-        <el-form-item label="归集ID" prop="amount">
-          <el-input v-model="form.amount" placeholder="请输入归集ID" />
-        </el-form-item>
-        <el-form-item label="来源地址，用户平台地址" prop="from">
-          <el-input v-model="form.from" placeholder="请输入来源地址，用户平台地址" />
-        </el-form-item>
-        <el-form-item label="目标地址" prop="to">
-          <el-input v-model="form.to" placeholder="请输入目标地址" />
-        </el-form-item>
-        <el-form-item label="状态：0.待归集，1.归集中，2.归集完成，3.归集失败" prop="state">
-          <el-input v-model="form.state" placeholder="请输入状态：0.待归集，1.归集中，2.归集完成，3.归集失败" />
-        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -214,49 +207,74 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 状态字典
+      stateOptions: [],
+      // 创建时间时间范围
+      daterangeCreateTime: [],
+      // 修改时间时间范围
+      daterangeUpdateTime: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        rechargeId: undefined,
-        rechargeChainId: undefined,
-        collectChainId: undefined,
         amount: undefined,
-        from: undefined,
-        to: undefined,
+        symbol: undefined,
+        fromAddr: undefined,
         state: undefined,
+        toAddr: undefined,
+        createTime: undefined,
+        updateTime: undefined
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        rechargeId: [
-          { required: true, message: "充值记录ID不能为空", trigger: "blur" }
+        amount: [
+          { required: true, message: "金额不能为空", trigger: "blur" }
         ],
-        rechargeChainId: [
-          { required: true, message: "充值链上ID不能为空", trigger: "blur" }
+        symbol: [
+          { required: true, message: "币种不能为空", trigger: "blur" }
+        ],
+        fromAddr: [
+          { required: true, message: "来源地址不能为空", trigger: "blur" }
         ],
         state: [
-          { required: true, message: "状态：0.待归集，1.归集中，2.归集完成，3.归集失败不能为空", trigger: "blur" }
+          { required: true, message: "状态不能为空", trigger: "blur" }
         ],
-        createTime: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
+        toAddr: [
+          { required: true, message: "目标地址不能为空", trigger: "blur" }
         ],
       }
     };
   },
   created() {
     this.getList();
+    this.getDicts("tron_collect_status").then(response => {
+      this.stateOptions = response.data;
+    });
   },
   methods: {
     /** 查询归集记录列表 */
     getList() {
       this.loading = true;
+      this.queryParams.params = {};
+      if (null != this.daterangeCreateTime && '' != this.daterangeCreateTime) {
+        this.queryParams.params["beginCreateTime"] = this.daterangeCreateTime[0];
+        this.queryParams.params["endCreateTime"] = this.daterangeCreateTime[1];
+      }
+      if (null != this.daterangeUpdateTime && '' != this.daterangeUpdateTime) {
+        this.queryParams.params["beginUpdateTime"] = this.daterangeUpdateTime[0];
+        this.queryParams.params["endUpdateTime"] = this.daterangeUpdateTime[1];
+      }
       listCollect(this.queryParams).then(response => {
         this.collectList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
+    },
+    // 状态字典翻译
+    stateFormat(row, column) {
+      return this.selectDictLabel(this.stateOptions, row.state);
     },
     // 取消按钮
     cancel() {
@@ -271,9 +289,10 @@ export default {
         rechargeChainId: undefined,
         collectChainId: undefined,
         amount: undefined,
-        from: undefined,
-        to: undefined,
+        symbol: undefined,
+        fromAddr: undefined,
         state: undefined,
+        toAddr: undefined,
         createTime: undefined,
         updateTime: undefined
       };
@@ -286,6 +305,8 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.daterangeCreateTime = [];
+      this.daterangeUpdateTime = [];
       this.resetForm("queryForm");
       this.handleQuery();
     },
